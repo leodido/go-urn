@@ -1,0 +1,11 @@
+go-urn
+urn
+
+*.exe
+*.dll
+*.so
+*.dylib
+
+*.test
+
+*.out
