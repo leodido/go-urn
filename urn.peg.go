@@ -783,7 +783,7 @@ func (p *URN) Init() {
 		nil,
 		/* 3 NSS <- <CHARS+> */
 		nil,
-		/* 4 LET_NUM <- <((&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') number) | (&('a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z') lower) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z') upper))> */
+		/* 4 LET_NUM <- <((&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') number+) | (&('a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z') lower+) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z') upper+))> */
 		func() bool {
 			position41, tokenIndex41 := position, tokenIndex
 			{
@@ -794,47 +794,65 @@ func (p *URN) Init() {
 						if !_rules[rulenumber]() {
 							goto l41
 						}
+					l44:
+						{
+							position45, tokenIndex45 := position, tokenIndex
+							if !_rules[rulenumber]() {
+								goto l45
+							}
+							goto l44
+						l45:
+							position, tokenIndex = position45, tokenIndex45
+						}
 						break
 					case 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z':
 						{
-							position44 := position
+							position48 := position
 							if c := buffer[position]; c < rune('a') || c > rune('z') {
 								goto l41
 							}
 							position++
-						l45:
+							add(rulelower, position48)
+						}
+					l46:
+						{
+							position47, tokenIndex47 := position, tokenIndex
 							{
-								position46, tokenIndex46 := position, tokenIndex
+								position49 := position
 								if c := buffer[position]; c < rune('a') || c > rune('z') {
-									goto l46
+									goto l47
 								}
 								position++
-								goto l45
-							l46:
-								position, tokenIndex = position46, tokenIndex46
+								add(rulelower, position49)
 							}
-							add(rulelower, position44)
+							goto l46
+						l47:
+							position, tokenIndex = position47, tokenIndex47
 						}
 						break
 					default:
 						{
-							position47 := position
+							position52 := position
 							if c := buffer[position]; c < rune('A') || c > rune('Z') {
 								goto l41
 							}
 							position++
-						l48:
+							add(ruleupper, position52)
+						}
+					l50:
+						{
+							position51, tokenIndex51 := position, tokenIndex
 							{
-								position49, tokenIndex49 := position, tokenIndex
+								position53 := position
 								if c := buffer[position]; c < rune('A') || c > rune('Z') {
-									goto l49
+									goto l51
 								}
 								position++
-								goto l48
-							l49:
-								position, tokenIndex = position49, tokenIndex49
+								add(ruleupper, position53)
 							}
-							add(ruleupper, position47)
+							goto l50
+						l51:
+							position, tokenIndex = position51, tokenIndex51
 						}
 						break
 					}
@@ -853,60 +871,70 @@ func (p *URN) Init() {
 		nil,
 		/* 7 TRANS <- <((&('#' | '%' | '/' | '?') RESERVED) | (&('!' | '$' | '\'' | '(' | ')' | '*' | '+' | ',' | '-' | '.' | ':' | ';' | '=' | '@' | '_') OTHER) | (&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z') LET_NUM))> */
 		nil,
-		/* 8 HEX <- <((&('a' | 'b' | 'c' | 'd' | 'e' | 'f') [a-f]+) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F') [A-F]+) | (&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') number))> */
+		/* 8 HEX <- <((&('a' | 'b' | 'c' | 'd' | 'e' | 'f') [a-f]+) | (&('A' | 'B' | 'C' | 'D' | 'E' | 'F') [A-F]+) | (&('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') number+))> */
 		func() bool {
-			position53, tokenIndex53 := position, tokenIndex
+			position57, tokenIndex57 := position, tokenIndex
 			{
-				position54 := position
+				position58 := position
 				{
 					switch buffer[position] {
 					case 'a', 'b', 'c', 'd', 'e', 'f':
 						if c := buffer[position]; c < rune('a') || c > rune('f') {
-							goto l53
+							goto l57
 						}
 						position++
-					l56:
+					l60:
 						{
-							position57, tokenIndex57 := position, tokenIndex
+							position61, tokenIndex61 := position, tokenIndex
 							if c := buffer[position]; c < rune('a') || c > rune('f') {
-								goto l57
+								goto l61
 							}
 							position++
-							goto l56
-						l57:
-							position, tokenIndex = position57, tokenIndex57
+							goto l60
+						l61:
+							position, tokenIndex = position61, tokenIndex61
 						}
 						break
 					case 'A', 'B', 'C', 'D', 'E', 'F':
 						if c := buffer[position]; c < rune('A') || c > rune('F') {
-							goto l53
+							goto l57
 						}
 						position++
-					l58:
+					l62:
 						{
-							position59, tokenIndex59 := position, tokenIndex
+							position63, tokenIndex63 := position, tokenIndex
 							if c := buffer[position]; c < rune('A') || c > rune('F') {
-								goto l59
+								goto l63
 							}
 							position++
-							goto l58
-						l59:
-							position, tokenIndex = position59, tokenIndex59
+							goto l62
+						l63:
+							position, tokenIndex = position63, tokenIndex63
 						}
 						break
 					default:
 						if !_rules[rulenumber]() {
-							goto l53
+							goto l57
+						}
+					l64:
+						{
+							position65, tokenIndex65 := position, tokenIndex
+							if !_rules[rulenumber]() {
+								goto l65
+							}
+							goto l64
+						l65:
+							position, tokenIndex = position65, tokenIndex65
 						}
 						break
 					}
 				}
 
-				add(ruleHEX, position54)
+				add(ruleHEX, position58)
 			}
 			return true
-		l53:
-			position, tokenIndex = position53, tokenIndex53
+		l57:
+			position, tokenIndex = position57, tokenIndex57
 			return false
 		},
 		/* 9 OTHER <- <((&('\'') '\'') | (&('*') '*') | (&('!') '!') | (&('_') '_') | (&('$') '$') | (&(';') ';') | (&('@') '@') | (&('=') '=') | (&(':') colon) | (&('.') '.') | (&('-') hyp) | (&(',') ',') | (&('+') '+') | (&(')') ')') | (&('(') '('))> */
@@ -915,83 +943,72 @@ func (p *URN) Init() {
 		nil,
 		/* 11 colon <- <':'> */
 		func() bool {
-			position62, tokenIndex62 := position, tokenIndex
+			position68, tokenIndex68 := position, tokenIndex
 			{
-				position63 := position
+				position69 := position
 				if buffer[position] != rune(':') {
-					goto l62
+					goto l68
 				}
 				position++
-				add(rulecolon, position63)
+				add(rulecolon, position69)
 			}
 			return true
-		l62:
-			position, tokenIndex = position62, tokenIndex62
+		l68:
+			position, tokenIndex = position68, tokenIndex68
 			return false
 		},
 		/* 12 eot <- <!.> */
 		nil,
-		/* 13 upper <- <[A-Z]+> */
+		/* 13 upper <- <[A-Z]> */
 		nil,
-		/* 14 lower <- <[a-z]+> */
+		/* 14 lower <- <[a-z]> */
 		nil,
-		/* 15 number <- <[0-9]+> */
-		func() bool {
-			position67, tokenIndex67 := position, tokenIndex
-			{
-				position68 := position
-				if c := buffer[position]; c < rune('0') || c > rune('9') {
-					goto l67
-				}
-				position++
-			l69:
-				{
-					position70, tokenIndex70 := position, tokenIndex
-					if c := buffer[position]; c < rune('0') || c > rune('9') {
-						goto l70
-					}
-					position++
-					goto l69
-				l70:
-					position, tokenIndex = position70, tokenIndex70
-				}
-				add(rulenumber, position68)
-			}
-			return true
-		l67:
-			position, tokenIndex = position67, tokenIndex67
-			return false
-		},
-		/* 16 hyp <- <'-'> */
-		func() bool {
-			position71, tokenIndex71 := position, tokenIndex
-			{
-				position72 := position
-				if buffer[position] != rune('-') {
-					goto l71
-				}
-				position++
-				add(rulehyp, position72)
-			}
-			return true
-		l71:
-			position, tokenIndex = position71, tokenIndex71
-			return false
-		},
-		/* 17 perc <- <'%'> */
+		/* 15 number <- <[0-9]> */
 		func() bool {
 			position73, tokenIndex73 := position, tokenIndex
 			{
 				position74 := position
-				if buffer[position] != rune('%') {
+				if c := buffer[position]; c < rune('0') || c > rune('9') {
 					goto l73
 				}
 				position++
-				add(ruleperc, position74)
+				add(rulenumber, position74)
 			}
 			return true
 		l73:
 			position, tokenIndex = position73, tokenIndex73
+			return false
+		},
+		/* 16 hyp <- <'-'> */
+		func() bool {
+			position75, tokenIndex75 := position, tokenIndex
+			{
+				position76 := position
+				if buffer[position] != rune('-') {
+					goto l75
+				}
+				position++
+				add(rulehyp, position76)
+			}
+			return true
+		l75:
+			position, tokenIndex = position75, tokenIndex75
+			return false
+		},
+		/* 17 perc <- <'%'> */
+		func() bool {
+			position77, tokenIndex77 := position, tokenIndex
+			{
+				position78 := position
+				if buffer[position] != rune('%') {
+					goto l77
+				}
+				position++
+				add(ruleperc, position78)
+			}
+			return true
+		l77:
+			position, tokenIndex = position77, tokenIndex77
 			return false
 		},
 	}
