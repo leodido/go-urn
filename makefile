@@ -1,10 +1,14 @@
+SHELL = /bin/bash
+
 .PHONY = clean
 
-urn: urn.peg.go main.go
-	go build -o urn
+directory := grammar
 
-urn.peg.go: urn.peg
-	@peg -switch -inline $?
+$(directory)/urn_{parser,lexer,base_listener,listener,base_visitor,visitor}.go: $(directory)/Urn.g4
+	$(SHELL) -c "./$(directory)/antlr -Dlanguage=Go -o $(directory) -package $(directory) -listener -no-visitor $?"
+
+test: $(directory)/urn_{parser,lexer,base_listener,listener,base_visitor,visitor}.go *_test.go
+	go test
 
 clean:
-	rm -rf urn *.peg.go
+	rm -f $(directory)/urn_{parser,lexer,base_listener,listener,base_visitor,visitor}.go $(directory)/Urn{,Lexer}.tokens
