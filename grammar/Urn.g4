@@ -12,17 +12,92 @@ grammar Urn;
 }
 
 urn
-    : 'urn' Colon iD Colon sS EOF
+    : Urn Colon iD Colon sS EOF
     ;
 
-iD
-    : 'NID'
+iD  
+    : Part {len($ctx.GetText()) <= 32}?
     ;
 
 sS
-    : 'NSS'
+    : Part (Colon Part)*
+    | Urn
+    ;
+
+Urn
+    : 'urn'
+    ;
+
+Part
+    : IDENTIFIER|CHARS
     ;
 
 Colon
     : ':'
+    ;
+
+fragment IDENTIFIER   
+    : ALPHA_NUMERIC (ALPHA_NUMERIC|HYPHEN)+
+    ;
+
+fragment CHARS
+    : (TRANSLATION|HEX)+
+    ;
+
+fragment HEX
+    : '%' HEX_DIGIT HEX_DIGIT
+    ;
+
+fragment NUMBER
+    : [0-9]
+    ;
+
+fragment LETTER
+    : [A-Z]
+    | [a-z]
+    ;
+
+fragment ALPHA_NUMERIC
+    : NUMBER
+    | LETTER 
+    ;
+
+fragment HYPHEN
+    : '-'
+    ;
+
+fragment OTHER
+    : '('
+    | ')'
+    | '+'
+    | ','
+    | HYPHEN
+    | '.'
+    | '='
+    | '@'
+    | ';'
+    | '$'
+    | '_'
+    | '!'
+    | '*'
+    | '\''
+    ;
+
+fragment HEX_DIGIT
+    : NUMBER
+    | [A-F]
+    | [a-f]
+    ;
+
+fragment RESERVED
+    : '%'
+    | '/'
+    | '?'
+    | '#'
+    ;
+
+fragment TRANSLATION
+    : ALPHA_NUMERIC
+    | OTHER
+    | RESERVED
     ;
