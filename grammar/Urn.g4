@@ -25,7 +25,7 @@ sS
     ;
 
 Urn
-    : 'urn'
+    : URN
     ;
 
 Part
@@ -34,6 +34,10 @@ Part
 
 Colon
     : ':'
+    ;
+
+fragment URN
+    : [uU][rR][nN]
     ;
 
 fragment IDENTIFIER   
