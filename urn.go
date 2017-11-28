@@ -1,7 +1,6 @@
 package urn
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
@@ -34,13 +33,12 @@ func (e *Error) Error() string {
 
 type errorListener struct {
 	*antlr.DefaultErrorListener
+	input string
 }
 
 func (l *errorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
-	is := e.GetOffendingToken().GetInputStream()
-
 	panic(&Error{
-		Source: fmt.Sprintf("%s", is),
+		Source: l.input,
 		Column: column,
 		Detail: msg,
 	})
@@ -57,12 +55,17 @@ func Parse(u string) (*URN, error) {
 }
 
 func parse(u string) (urn *URN, err error) {
+	errl := new(errorListener)
+	errl.DefaultErrorListener = new(antlr.DefaultErrorListener)
+	errl.input = u
+
 	stream := antlr.NewInputStream(u)
 	lexer := grammar.NewUrnLexer(stream)
 	tokens := antlr.NewCommonTokenStream(lexer, 0)
 	parser := grammar.NewUrnParser(tokens)
 	parser.RemoveErrorListeners()
-	parser.AddErrorListener(new(errorListener))
+	parser.AddErrorListener(errl)
+	// parser.BuildParseTrees = false // (todo) > ?
 
 	defer func() {
 		if r := recover(); r != nil {
