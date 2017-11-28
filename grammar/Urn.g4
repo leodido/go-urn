@@ -52,6 +52,10 @@ Hyphen
     : '-'
     ;
 
+Whitespace
+    : ' '
+    ;
+
 fragment URN
     : [uU][rR][nN]
     ;
