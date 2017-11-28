@@ -9,10 +9,6 @@ import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
 
-
-
-
-
 // Suppress unused import errors
 var _ = fmt.Printf
 var _ = reflect.Copy
@@ -20,22 +16,27 @@ var _ = strconv.Itoa
 
 
 var parserATN = []uint16{
-	3, 24715, 42794, 33075, 47597, 16764, 15335, 30598, 22884, 3, 6, 20, 4, 
+	3, 24715, 42794, 33075, 47597, 16764, 15335, 30598, 22884, 3, 5, 30, 4, 
 	2, 9, 2, 4, 3, 9, 3, 4, 4, 9, 4, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 
-	2, 3, 3, 3, 3, 3, 4, 3, 4, 3, 4, 2, 2, 5, 2, 4, 6, 2, 2, 2, 16, 2, 8, 3, 
-	2, 2, 2, 4, 15, 3, 2, 2, 2, 6, 17, 3, 2, 2, 2, 8, 9, 7, 3, 2, 2, 9, 10, 
-	7, 6, 2, 2, 10, 11, 5, 4, 3, 2, 11, 12, 7, 6, 2, 2, 12, 13, 5, 6, 4, 2, 
-	13, 14, 7, 2, 2, 3, 14, 3, 3, 2, 2, 2, 15, 16, 7, 4, 2, 2, 16, 5, 3, 2, 
-	2, 2, 17, 18, 7, 5, 2, 2, 18, 7, 3, 2, 2, 2, 2,
+	2, 3, 3, 3, 3, 3, 3, 3, 4, 3, 4, 3, 4, 7, 4, 22, 10, 4, 12, 4, 14, 4, 25, 
+	11, 4, 3, 4, 5, 4, 28, 10, 4, 3, 4, 2, 2, 5, 2, 4, 6, 2, 2, 2, 28, 2, 8, 
+	3, 2, 2, 2, 4, 15, 3, 2, 2, 2, 6, 27, 3, 2, 2, 2, 8, 9, 7, 3, 2, 2, 9, 
+	10, 7, 5, 2, 2, 10, 11, 5, 4, 3, 2, 11, 12, 7, 5, 2, 2, 12, 13, 5, 6, 4, 
+	2, 13, 14, 7, 2, 2, 3, 14, 3, 3, 2, 2, 2, 15, 16, 7, 4, 2, 2, 16, 17, 6, 
+	3, 2, 3, 17, 5, 3, 2, 2, 2, 18, 23, 7, 4, 2, 2, 19, 20, 7, 5, 2, 2, 20, 
+	22, 7, 4, 2, 2, 21, 19, 3, 2, 2, 2, 22, 25, 3, 2, 2, 2, 23, 21, 3, 2, 2, 
+	2, 23, 24, 3, 2, 2, 2, 24, 28, 3, 2, 2, 2, 25, 23, 3, 2, 2, 2, 26, 28, 
+	7, 3, 2, 2, 27, 18, 3, 2, 2, 2, 27, 26, 3, 2, 2, 2, 28, 7, 3, 2, 2, 2, 
+	4, 23, 27,
 }
 var deserializer = antlr.NewATNDeserializer(nil)
 var deserializedATN = deserializer.DeserializeFromUInt16(parserATN)
 
 var literalNames = []string{
-	"", "'urn'", "'NID'", "'NSS'", "':'",
+	"", "", "", "':'",
 }
 var symbolicNames = []string{
-	"", "", "", "", "Colon",
+	"", "Urn", "Part", "Colon",
 }
 
 var ruleNames = []string{
@@ -67,17 +68,12 @@ func NewUrnParser(input antlr.TokenStream) *UrnParser {
 	return this
 }
 
-
-
-
-
 // UrnParser tokens.
 const (
 	UrnParserEOF = antlr.TokenEOF
-	UrnParserT__0 = 1
-	UrnParserT__1 = 2
-	UrnParserT__2 = 3
-	UrnParserColon = 4
+	UrnParserUrn = 1
+	UrnParserPart = 2
+	UrnParserColon = 3
 )
 
 // UrnParser rules.
@@ -124,6 +120,10 @@ func NewUrnContext(parser antlr.Parser, parent antlr.ParserRuleContext, invoking
 }
 
 func (s *UrnContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *UrnContext) Urn() antlr.TerminalNode {
+	return s.GetToken(UrnParserUrn, 0)
+}
 
 func (s *UrnContext) AllColon() []antlr.TerminalNode {
 	return s.GetTokens(UrnParserColon)
@@ -204,7 +204,7 @@ func (p *UrnParser) Urn() (localctx IUrnContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(6)
-		p.Match(UrnParserT__0)
+		p.Match(UrnParserUrn)
 	}
 	{
 		p.SetState(7)
@@ -270,6 +270,11 @@ func NewIDContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingS
 }
 
 func (s *IDContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *IDContext) Part() antlr.TerminalNode {
+	return s.GetToken(UrnParserPart, 0)
+}
+
 func (s *IDContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -317,7 +322,12 @@ func (p *UrnParser) ID() (localctx IIDContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(13)
-		p.Match(UrnParserT__1)
+		p.Match(UrnParserPart)
+	}
+	p.SetState(14)
+
+	if !(len(localctx.(*IDContext).GetText()) <= 32) {
+		panic(antlr.NewFailedPredicateException(p, "len($ctx.GetText()) <= 32", ""))
 	}
 
 
@@ -363,6 +373,27 @@ func NewSSContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingS
 }
 
 func (s *SSContext) GetParser() antlr.Parser { return s.parser }
+
+func (s *SSContext) AllPart() []antlr.TerminalNode {
+	return s.GetTokens(UrnParserPart)
+}
+
+func (s *SSContext) Part(i int) antlr.TerminalNode {
+	return s.GetToken(UrnParserPart, i)
+}
+
+func (s *SSContext) AllColon() []antlr.TerminalNode {
+	return s.GetTokens(UrnParserColon)
+}
+
+func (s *SSContext) Colon(i int) antlr.TerminalNode {
+	return s.GetToken(UrnParserColon, i)
+}
+
+func (s *SSContext) Urn() antlr.TerminalNode {
+	return s.GetToken(UrnParserUrn, 0)
+}
+
 func (s *SSContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -390,6 +421,8 @@ func (s *SSContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *UrnParser) SS() (localctx ISSContext) {
 	localctx = NewSSContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 4, UrnParserRULE_sS)
+	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -407,15 +440,76 @@ func (p *UrnParser) SS() (localctx ISSContext) {
 		}
 	}()
 
-	p.EnterOuterAlt(localctx, 1)
-	{
-		p.SetState(15)
-		p.Match(UrnParserT__2)
-	}
+	p.SetState(25)
+	p.GetErrorHandler().Sync(p)
 
+	switch p.GetTokenStream().LA(1) {
+	case UrnParserPart:
+		p.EnterOuterAlt(localctx, 1)
+		{
+			p.SetState(16)
+			p.Match(UrnParserPart)
+		}
+		p.SetState(21)
+		p.GetErrorHandler().Sync(p)
+		_la = p.GetTokenStream().LA(1)
+
+
+		for _la == UrnParserColon {
+			{
+				p.SetState(17)
+				p.Match(UrnParserColon)
+			}
+			{
+				p.SetState(18)
+				p.Match(UrnParserPart)
+			}
+
+
+			p.SetState(23)
+			p.GetErrorHandler().Sync(p)
+			_la = p.GetTokenStream().LA(1)
+		}
+
+
+	case UrnParserUrn:
+		p.EnterOuterAlt(localctx, 2)
+		{
+			p.SetState(24)
+			p.Match(UrnParserUrn)
+		}
+
+
+
+	default:
+		panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
+	}
 
 
 	return localctx
 }
 
+
+func (p *UrnParser) Sempred(localctx antlr.RuleContext, ruleIndex, predIndex int) bool {
+	switch ruleIndex {
+	case 1:
+			var t *IDContext = nil
+			if localctx != nil { t = localctx.(*IDContext) }
+			return p.ID_Sempred(t, predIndex)
+
+
+	default:
+		panic("No predicate with index: " + fmt.Sprint(ruleIndex))
+	}
+}
+
+func (p *UrnParser) ID_Sempred(localctx antlr.RuleContext, predIndex int) bool {
+	switch predIndex {
+	case 0:
+			return len(localctx.(*IDContext).GetText()) <= 32
+
+	default:
+		panic("No predicate with index: " + fmt.Sprint(predIndex))
+	}
+}
 
