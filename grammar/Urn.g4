@@ -15,7 +15,9 @@ iD
     ;
 
 sS
-    : Part (Colon Part)*
+    : Part (Colon|Hyphen)* sS?
+    | (Colon|Hyphen)+ sS?
+    | Part sS?
     | Urn
     ;
 
@@ -24,11 +26,16 @@ Urn
     ;
 
 Part
-    : IDENTIFIER|CHARS
+    : IDENTIFIER
+    | CHARS
     ;
 
 Colon
     : ':'
+    ;
+
+Hyphen
+    : '-'
     ;
 
 fragment URN
@@ -36,7 +43,7 @@ fragment URN
     ;
 
 fragment IDENTIFIER   
-    : ALPHA_NUMERIC (ALPHA_NUMERIC|HYPHEN)+
+    : ALPHA_NUMERIC (ALPHA_NUMERIC|Hyphen)+
     ;
 
 fragment CHARS
@@ -61,16 +68,11 @@ fragment ALPHA_NUMERIC
     | LETTER 
     ;
 
-fragment HYPHEN
-    : '-'
-    ;
-
 fragment OTHER
     : '('
     | ')'
     | '+'
     | ','
-    | HYPHEN
     | '.'
     | '='
     | '@'
@@ -96,7 +98,7 @@ fragment RESERVED
     ;
 
 fragment TRANSLATION
-    : ALPHA_NUMERIC
-    | OTHER
+    : OTHER
     | RESERVED
+    | ALPHA_NUMERIC
     ;
