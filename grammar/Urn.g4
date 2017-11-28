@@ -5,12 +5,6 @@
  */
 grammar Urn;
 
-@parser::header {
-}
-
-@parser::members {
-}
-
 urn
     : Urn Colon iD Colon sS EOF
     ;
