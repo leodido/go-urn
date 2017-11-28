@@ -6,12 +6,26 @@
  */
 grammar Urn;
 
+@parser::members {
+func isIdentifier(s string) bool {
+    for i, r := range s {
+        // !unicode.IsLetter(r) etc. when (if) we'll need unicode
+        if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && (r != '-' || (i == 0 && r == '-')) {
+            return false
+        }
+    }
+    return true
+}
+}
+
 urn
     : Urn Colon iD Colon sS EOF
     ;
 
 iD  
-    : Part {len($ctx.GetText()) <= 32}?
+    : Part
+    {len($ctx.GetText()) <= 32}?<fail={"exceed max (32) number of characters"}>
+    {isIdentifier($ctx.GetText())}?<fail={"is not a valid identifier"}>
     ;
 
 sS
