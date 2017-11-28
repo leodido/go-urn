@@ -1,4 +1,8 @@
 Urn=1
 Part=2
 Colon=3
+Hyphen=4
+Whitespace=5
 ':'=3
+'-'=4
+' '=5
