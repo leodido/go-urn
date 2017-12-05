@@ -14,6 +14,7 @@ func TestUrnParse(t *testing.T) {
 			require.True(t, tt.ok, herror(ii, tt))
 			require.Equal(t, tt.obj.ID, urn.ID, herror(ii, tt))
 			require.Equal(t, tt.obj.SS, urn.SS, herror(ii, tt))
+			// (todo) > test normalized version vs expected one
 		} else {
 			require.False(t, tt.ok, herror(ii, tt))
 			require.Empty(t, urn, herror(ii, tt))
