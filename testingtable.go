@@ -30,9 +30,6 @@ var tests = []testCase{
 	{"urn:a:b", true, &URN{ID: "a", SS: "b"}, -1, "(urn urn : (iD a) : (sS b) <EOF>)"},
 	{"urn:a::", true, &URN{ID: "a", SS: ":"}, -1, "(urn urn : (iD a) : (sS :) <EOF>)"},
 	{"urn:a:-", true, &URN{ID: "a", SS: "-"}, -1, "(urn urn : (iD a) : (sS -) <EOF>)"},
-	// {"urn:a:%", true, &URN{ID: "a", SS: "%"}, -1, "(urn urn : (iD a) : (sS %) <EOF>)"},
-	// (fixme) > the presence of an "%" character in an URN MUST be followed by two characters from the <hex> character set
-	// (fixme) > should be a negative example
 
 	// ok - URN prefix is case-insensitive
 	{"URN:simple:simple", true, &URN{ID: "simple", SS: "simple"}, -1, "(urn URN : (iD simple) : (sS simple) <EOF>)"},
@@ -78,10 +75,10 @@ var tests = []testCase{
 	{"urn:ciao:-!:-,:x", true, &URN{ID: "ciao", SS: "-!:-,:x"}, -1, "(urn urn : (iD ciao) : (sS -!:-,:x) <EOF>)"},
 	{"urn:ciao:=@", true, &URN{ID: "ciao", SS: "=@"}, -1, "(urn urn : (iD ciao) : (sS =@) <EOF>)"},
 	{"urn:ciao:@!=(xyz)+a,b.*@g=$_'", true, &URN{ID: "ciao", SS: "@!=(xyz)+a,b.*@g=$_'"}, -1, "(urn urn : (iD ciao) : (sS @!=(xyz)+a,b.*@g=$_') <EOF>)"},
-	// (fixme) > better understand whether reserved characters can appear within the NSS or not
-	// (fixme) > probably can appear only if escaped (ie., via %-escape)
 
-	// ok - SS can contain (and also start with) hexadecimal representation of octets  // (todo)
+	// ok - SS can contain (and also start with) hexadecimal representation of octets
+	{"URN:hexes:%25", true, &URN{ID: "hexes", SS: "%25"}, -1, "(urn urn : (iD hexes) : (sS %25) <EOF>)"},                      // Literal use of the "%" character in a namespace must be encoded using "%25"
+	{"URN:x:abc%1Dz%2F%3az", true, &URN{ID: "x", SS: "abc%1Dz%2F%3az"}, -1, "(urn urn : (iD x) : (sS abc%1Dz%2F%3az) <EOF>)"}, // Literal use of the "%" character in a namespace must be encoded using "%25"
 
 	// no - ID can not start with an hyphen
 	{"URN:-xxx:x", false, nil, 4, ""},
@@ -108,6 +105,12 @@ var tests = []testCase{
 
 	// no - SS can not contain spaces
 	{"urn:concat:no spaces", false, nil, 13, ""},
+
+	// no - SS can not contain reserved characters (can accept them only if %-escaped)
+	{"urn:a:%", false, nil, 5, "(urn urn : (iD a) : (sS %) <EOF>)"}, // the presence of an "%" character in an URN MUST be followed by two characters from the <hex> character set
+	{"urn:a:?", false, nil, 5, "(urn urn : (iD a) : (sS %) <EOF>)"},
+	{"urn:a:#", false, nil, 5, "(urn urn : (iD a) : (sS %) <EOF>)"},
+	{"urn:a:/", false, nil, 5, "(urn urn : (iD a) : (sS %) <EOF>)"},
 
 	// no - Incomplete URNs
 	{"urn:", false, nil, 4, ""},
