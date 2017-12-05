@@ -1,11 +1,22 @@
 package urn
 
 import (
-	"strconv"
+	"fmt"
+	"strings"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
-	"github.com/leodido/go-urn/grammar"
+	pcre "github.com/gijsbers/go-pcre"
 )
+
+var re = `^
+	(?:(?P<pre>[uU][rR][nN]):(?!urn:))
+
+	(?P<nid>[A-Za-z0-9][A-Za-z0-9-]{0,31}):
+
+	(?P<nss>(?:[A-Za-z0-9()+,\-.:=@;$_!*']|[%][A-Fa-f0-9][A-Fa-f0-9])+)
+$`
+
+var pattern = pcre.MustCompile(re, pcre.EXTENDED)
+var hexrepr = pcre.MustCompile("[%][a-f0-9]{2}", pcre.CASELESS)
 
 // URN represents an Uniform Resource Name.
 //
@@ -15,70 +26,24 @@ import (
 //
 // Details at https://tools.ietf.org/html/rfc2141
 type URN struct {
-	ID   string // Namespace identifier
-	SS   string // Namespace specific string
-	tree string
-}
-
-// Error describes an error and the input that caused it.
-type Error struct {
-	Source string
-	Column int
-	Detail string
-}
-
-func (e *Error) Error() string {
-	return "\"" + e.Source + "\" causes syntax error at character " + strconv.Itoa(e.Column) + ", " + e.Detail
-}
-
-type errorListener struct {
-	*antlr.DefaultErrorListener
-	input string
-}
-
-func (l *errorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
-	panic(&Error{
-		Source: l.input,
-		Column: column,
-		Detail: msg,
-	})
+	ID string // Namespace identifier
+	SS string // Namespace specific string
 }
 
 // Parse is ...
-func Parse(u string) (*URN, error) {
-	urn, err := parse(u)
-	if err != nil {
-		return nil, err
+func Parse(u string) (*URN, bool) {
+	matcher := pattern.MatcherString(u, 0)
+	matches := matcher.Matches()
+
+	if matches {
+		urn := &URN{}
+		urn.ID, _ = matcher.NamedString("nid")
+		urn.SS, _ = matcher.NamedString("nss")
+
+		return urn, matches
 	}
 
-	return urn, err
-}
-
-func parse(u string) (urn *URN, err error) {
-	errl := new(errorListener)
-	errl.DefaultErrorListener = new(antlr.DefaultErrorListener)
-	errl.input = u
-
-	stream := antlr.NewInputStream(u)
-	lexer := grammar.NewUrnLexer(stream)
-	tokens := antlr.NewCommonTokenStream(lexer, 0)
-	parser := grammar.NewUrnParser(tokens)
-	parser.RemoveErrorListeners()
-	parser.AddErrorListener(errl)
-	// parser.BuildParseTrees = false // (todo) > ?
-
-	defer func() {
-		if r := recover(); r != nil {
-			urn = nil
-			err = r.(error)
-		}
-	}()
-
-	urn = &URN{}
-	parser.AddParseListener(NewListener(urn))
-	parser.Urn()
-
-	return
+	return nil, matches
 }
 
 // String reassembles the URN into a valid URN string.
@@ -94,7 +59,36 @@ func (u *URN) String() string {
 	return res
 }
 
-// Tree returns a string representation of the resulting concrete syntax tree.
-func (u *URN) Tree() string {
-	return u.tree
+// Normalize is ...
+func (u *URN) Normalize() *URN {
+	matcher := hexrepr.MatcherString(u.SS, 0)
+	results := matcher.ExtractString()
+
+	fmt.Println("results> ", results)
+	// find all hex within u.SS
+	// lowercase any match
+	// lowercase u.ID
+	// reconstruct string
+
+	return &URN{
+		ID: strings.ToLower(u.ID),
+		// SS: ...
+	}
+}
+
+/*
+func matchAll(re pcre.Regexp, subject []byte, flags int) [][]byte {
+	m := re.Matcher(subject, 0)
+	all := [][]byte{}
+	for m.Match(subject, flags) {
+		all = append(all, subject[m.ovector[0]:m.ovector[1]])
+		subject = subject[m.ovector[1]:]
+	}
+	return all
+}
+*/
+
+// Equal is ...
+func (u *URN) Equal(x *URN) bool {
+	return *u.Normalize() == *x.Normalize()
 }
