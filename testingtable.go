@@ -21,6 +21,8 @@ var tests = []testCase{
 	{"urn:foo:A123,456", true, &URN{ID: "foo", SS: "A123,456"}, -1, "(urn urn : (iD foo) : (sS A123,456) <EOF>)"},
 	{"urn:foo:a123%2C456", true, &URN{ID: "foo", SS: "a123%2C456"}, -1, "(urn urn : (iD foo) : (sS a123%2C456) <EOF>)"},
 	{"URN:FOO:a123%2c456", true, &URN{ID: "FOO", SS: "a123%2c456"}, -1, "(urn URN : (iD FOO) : (sS a123%2c456) <EOF>)"},
+	{"URN:FOO:ABC%FFabc123%2c456", true, &URN{ID: "FOO", SS: "ABC%FFabc123%2c456"}, -1, "(urn URN : (iD FOO) : (sS ABC%FFabc123%2c456) <EOF>)"},
+	{"URN:FOO:ABC%FFabc123%2C456%9A", true, &URN{ID: "FOO", SS: "ABC%FFabc123%2C456%9A"}, -1, "(urn URN : (iD FOO) : (sS ABC%FFabc123%2C456%9A) <EOF>)"},
 
 	// ok - SCIM v2
 	{"urn:ietf:params:scim:schemas:core:2.0:User", true, &URN{ID: "ietf", SS: "params:scim:schemas:core:2.0:User"}, -1, "(urn urn : (iD ietf) : (sS params : scim : schemas : core : 2.0 : User) <EOF>)"},
