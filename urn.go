@@ -1,7 +1,6 @@
 package urn
 
 import (
-	"fmt"
 	"strings"
 
 	pcre "github.com/gijsbers/go-pcre"
@@ -16,7 +15,7 @@ var re = `^
 $`
 
 var pattern = pcre.MustCompile(re, pcre.EXTENDED)
-var hexrepr = pcre.MustCompile("[%][a-f0-9]{2}", pcre.CASELESS)
+var hexrepr = pcre.MustCompile("[%][A-F0-9]{2}", 0)
 
 // URN represents an Uniform Resource Name.
 //
@@ -61,32 +60,23 @@ func (u *URN) String() string {
 
 // Normalize is ...
 func (u *URN) Normalize() *URN {
-	matcher := hexrepr.MatcherString(u.SS, 0)
-	results := matcher.ExtractString()
-
-	fmt.Println("results> ", results)
-	// find all hex within u.SS
-	// lowercase any match
-	// lowercase u.ID
-	// reconstruct string
+	norm := ""
+	ss := u.SS
+	matcher := hexrepr.MatcherString(ss, 0)
+	for matcher.MatchString(ss, 0) {
+		indexes := matcher.Index()
+		from := indexes[0]
+		to := indexes[1]
+		norm += ss[:from] + strings.ToLower(ss[from:to])
+		ss = ss[to:]
+	}
+	norm += ss
 
 	return &URN{
 		ID: strings.ToLower(u.ID),
-		// SS: ...
+		SS: norm,
 	}
 }
-
-/*
-func matchAll(re pcre.Regexp, subject []byte, flags int) [][]byte {
-	m := re.Matcher(subject, 0)
-	all := [][]byte{}
-	for m.Match(subject, flags) {
-		all = append(all, subject[m.ovector[0]:m.ovector[1]])
-		subject = subject[m.ovector[1]:]
-	}
-	return all
-}
-*/
 
 // Equal is ...
 func (u *URN) Equal(x *URN) bool {
