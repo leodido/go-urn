@@ -24,6 +24,29 @@ func TestUrn(t *testing.T) {
 	}
 }
 
+func TestLexicalEquivalence(t *testing.T) {
+	for ii, tt := range equivalenceTests {
+		urnlx, oklx := Parse(tt.lx)
+		urnrx, okrx := Parse(tt.rx)
+
+		if oklx && okrx {
+
+			require.True(t, urnlx.Equal(urnlx))
+			require.True(t, urnrx.Equal(urnrx))
+
+			if tt.eq {
+				require.True(t, urnlx.Equal(urnrx), ierror(ii))
+				require.True(t, urnrx.Equal(urnlx), ierror(ii))
+			} else {
+				require.False(t, urnlx.Equal(urnrx), ierror(ii))
+				require.False(t, urnrx.Equal(urnlx), ierror(ii))
+			}
+		} else {
+			t.Log("Something wrong in the testing table ...")
+		}
+	}
+}
+
 func TestDefaultPrefixWhenString(t *testing.T) {
 	u := &URN{
 		ID: "pippo",
