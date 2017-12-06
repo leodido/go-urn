@@ -25,8 +25,9 @@ var hexrepr = pcre.MustCompile("[%][A-F0-9]{2}", 0)
 //
 // Details at https://tools.ietf.org/html/rfc2141
 type URN struct {
-	ID string // Namespace identifier
-	SS string // Namespace specific string
+	prefix string // Static prefix. Equal to "urn" when empty.
+	ID     string // Namespace identifier
+	SS     string // Namespace specific string
 }
 
 // Parse is ...
@@ -36,6 +37,7 @@ func Parse(u string) (*URN, bool) {
 
 	if matches {
 		urn := &URN{}
+		urn.prefix, _ = matcher.NamedString("pre")
 		urn.ID, _ = matcher.NamedString("nid")
 		urn.SS, _ = matcher.NamedString("nss")
 
@@ -50,15 +52,24 @@ func Parse(u string) (*URN, bool) {
 // This requires both ID and SS fields to be non-empty.
 // Otherwise it returns an empty string.
 func (u *URN) String() string {
-	var res string
+	res := u.prefix
 	if u.ID != "" && u.SS != "" {
-		res = "urn:" + u.ID + ":" + u.SS
+		if res == "" {
+			res += "urn"
+		}
+		res += ":" + u.ID + ":" + u.SS
 	}
 
 	return res
 }
 
-// Normalize is ...
+// Normalize turn the URN into its norm version.
+//
+// Which means:
+// - Prefix "urn"
+// - Lowercase namespace identifier
+// - Lowercase <hex> tokens
+// - Immutate namespace specific string chars (that are not within <hex> tokens)
 func (u *URN) Normalize() *URN {
 	norm := ""
 	ss := u.SS
@@ -73,12 +84,13 @@ func (u *URN) Normalize() *URN {
 	norm += ss
 
 	return &URN{
-		ID: strings.ToLower(u.ID),
-		SS: norm,
+		prefix: "urn",
+		ID:     strings.ToLower(u.ID),
+		SS:     norm,
 	}
 }
 
-// Equal is ...
+// Equal checks the lexical equivalence of current URN with another one.
 func (u *URN) Equal(x *URN) bool {
 	return *u.Normalize() == *x.Normalize()
 }
