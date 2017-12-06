@@ -122,6 +122,26 @@ var tests = []testCase{
 	{"urn:a:", false, nil, "", ""},
 }
 
+func ierror(index int) string {
+	return "Test case num. " + strconv.Itoa(index+1)
+}
+
 func herror(index int, test testCase) string {
-	return "Test case num. " + strconv.Itoa(index+1) + ", input \"" + test.in + "\""
+	return ierror(index) + ", input \"" + test.in + "\""
+}
+
+var equivalenceTests = []struct {
+	eq bool
+	lx string
+	rx string
+}{
+	{true, "urn:foo:a123%2C456", "URN:FOO:a123%2c456"},
+	{true, "urn:foo:AbC123%2C456", "URN:FOO:AbC123%2c456"},
+	{true, "urn:foo:AbC123%2C456%1f", "URN:FOO:AbC123%2c456%1f"},
+	{true, "URN:foo:a123,456", "urn:foo:a123,456"},
+	{true, "URN:foo:a123,456", "urn:FOO:a123,456"},
+	{true, "urn:foo:a123,456", "urn:FOO:a123,456"},
+	{false, "urn:foo:A123,456", "URN:foo:a123,456"},
+	{false, "urn:foo:A123,456", "urn:foo:a123,456"},
+	{false, "urn:foo:A123,456", "urn:FOO:a123,456"},
 }
