@@ -28,6 +28,8 @@ var tests = []testCase{
 	// ok - SCIM v2
 	{"urn:ietf:params:scim:schemas:core:2.0:User", true, &URN{prefix: "urn", ID: "ietf", SS: "params:scim:schemas:core:2.0:User"}, "urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:core:2.0:User"},
 	{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User", true, &URN{prefix: "urn", ID: "ietf", SS: "params:scim:schemas:extension:enterprise:2.0:User"}, "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User", "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"},
+	{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName", true, &URN{prefix: "urn", ID: "ietf", SS: "params:scim:schemas:extension:enterprise:2.0:User:userName"}, "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName", "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName"},
+	{"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified", true, &URN{prefix: "urn", ID: "ietf", SS: "params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified"}, "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified", "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified"},
 
 	// ok - minimum urn
 	{"urn:a:b", true, &URN{prefix: "urn", ID: "a", SS: "b"}, "urn:a:b", "urn:a:b"},
