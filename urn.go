@@ -1,3 +1,7 @@
+// Package urn implements RFC 2141.
+//
+// It provides a parser capable, given a string respecting valid syntax as per RFC 2141, to instantiate an URN type.
+// Furthermore this package provides methods to perform normalization and lexical equivalence on URN instances.
 package urn
 
 import (
@@ -23,14 +27,14 @@ var hexrepr = pcre.MustCompile("[%][A-F0-9]{2}", 0)
 //
 //	urn:<id>:<ss>
 //
-// Details at https://tools.ietf.org/html/rfc2141
+// Details at https://tools.ietf.org/html/rfc2141.
 type URN struct {
 	prefix string // Static prefix. Equal to "urn" when empty.
 	ID     string // Namespace identifier
 	SS     string // Namespace specific string
 }
 
-// Parse is ...
+// Parse is responsible to create an URN instance from a string matching the correct URN syntax.
 func Parse(u string) (*URN, bool) {
 	matcher := pattern.MatcherString(u, 0)
 	matches := matcher.Matches()
@@ -65,13 +69,9 @@ func (u *URN) String() string {
 	return res
 }
 
-// Normalize turn the URN into its norm version.
+// Normalize turns the receiving URN into its norm version.
 //
-// Which means:
-// - Prefix "urn"
-// - Lowercase namespace identifier
-// - Lowercase <hex> tokens
-// - Immutate namespace specific string chars (that are not within <hex> tokens)
+// Which means: lowercase prefix, lowercase namespace identifier, and immutate namespace specific string chars (except <hex> tokens which are lowercased).
 func (u *URN) Normalize() *URN {
 	norm := ""
 	ss := u.SS
@@ -92,7 +92,7 @@ func (u *URN) Normalize() *URN {
 	}
 }
 
-// Equal checks the lexical equivalence of current URN with another one.
+// Equal checks the lexical equivalence of the current URN with another one.
 func (u *URN) Equal(x *URN) bool {
 	return *u.Normalize() == *x.Normalize()
 }
