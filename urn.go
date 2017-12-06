@@ -51,6 +51,8 @@ func Parse(u string) (*URN, bool) {
 //
 // This requires both ID and SS fields to be non-empty.
 // Otherwise it returns an empty string.
+//
+// Default URN prefix is "urn".
 func (u *URN) String() string {
 	res := u.prefix
 	if u.ID != "" && u.SS != "" {
