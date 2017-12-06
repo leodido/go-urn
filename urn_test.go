@@ -1,6 +1,7 @@
 package urn
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -54,4 +55,18 @@ func TestDefaultPrefixWhenString(t *testing.T) {
 	}
 
 	require.Equal(t, "urn:pippo:pluto", u.String())
+}
+
+func BenchmarkParse(b *testing.B) {
+	for ii, tt := range tests {
+		outcome := (map[bool]string{true: "ok", false: "no"})[tt.ok]
+		b.Run(
+			fmt.Sprintf("%s/%02d/%s%0*s/", outcome, ii, tt.in, len(tt.in)-60, " "),
+			func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					Parse(tt.in)
+				}
+			},
+		)
+	}
 }
