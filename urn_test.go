@@ -23,3 +23,12 @@ func TestUrn(t *testing.T) {
 		}
 	}
 }
+
+func TestDefaultPrefixWhenString(t *testing.T) {
+	u := &URN{
+		ID: "pippo",
+		SS: "pluto",
+	}
+
+	require.Equal(t, "urn:pippo:pluto", u.String())
+}
