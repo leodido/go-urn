@@ -1,8 +1,14 @@
-// +build ignore
-
 package urn
 
 import "strconv"
+
+func ierror(index int) string {
+	return "Test case num. " + strconv.Itoa(index+1)
+}
+
+func herror(index int, test testCase) string {
+	return ierror(index) + ", input \"" + test.in + "\""
+}
 
 type testCase struct {
 	in   string // the input
@@ -13,7 +19,6 @@ type testCase struct {
 }
 
 var tests = []testCase{
-
 	// ok
 	{"urn:simple:simple", true, &URN{prefix: "urn", ID: "simple", SS: "simple"}, "urn:simple:simple", "urn:simple:simple"},
 
@@ -124,14 +129,6 @@ var tests = []testCase{
 	{"urn::", false, nil, "", ""},
 	{"urn:a", false, nil, "", ""},
 	{"urn:a:", false, nil, "", ""},
-}
-
-func ierror(index int) string {
-	return "Test case num. " + strconv.Itoa(index+1)
-}
-
-func herror(index int, test testCase) string {
-	return ierror(index) + ", input \"" + test.in + "\""
 }
 
 var equivalenceTests = []struct {
