@@ -15,7 +15,7 @@ go get github.com/leodido/go-urn
 Or
 
 ```
-go get gopkg.in/leodido/go-urn
+go get gopkg.in/leodido/go-urn.v1
 ```
 
 ---
