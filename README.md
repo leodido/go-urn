@@ -4,15 +4,19 @@
 
 > As seen on [RFC 2141](https://tools.ietf.org/html/rfc2141#ref-1).
 
+[API documentation](https://godoc.org/github.com/leodido/go-urn).
+
 ## Installation
 
 ```
 go get github.com/leodido/go-urn
 ```
 
-## Usage
+Or
 
-...
+```
+go get gopkg.in/leodido/go-urn
+```
 
 ---
 
