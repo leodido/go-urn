@@ -21,6 +21,7 @@ type testCase struct {
 var tests = []testCase{
 	// ok
 	{"urn:simple:simple", true, &URN{prefix: "urn", ID: "simple", SS: "simple"}, "urn:simple:simple", "urn:simple:simple"},
+	{"urn:ciao:%5D", true, &URN{prefix: "urn", ID: "ciao", SS: "%5D"}, "urn:ciao:%5D", "urn:ciao:%5d"},
 
 	// ok - RFC examples
 	{"URN:foo:a123,456", true, &URN{prefix: "URN", ID: "foo", SS: "a123,456"}, "URN:foo:a123,456", "urn:foo:a123,456"},
@@ -142,6 +143,7 @@ var equivalenceTests = []struct {
 	{true, "URN:foo:a123,456", "urn:foo:a123,456"},
 	{true, "URN:foo:a123,456", "urn:FOO:a123,456"},
 	{true, "urn:foo:a123,456", "urn:FOO:a123,456"},
+	{true, "urn:ciao:%2E", "urn:ciao:%2e"},
 	{false, "urn:foo:A123,456", "URN:foo:a123,456"},
 	{false, "urn:foo:A123,456", "urn:foo:a123,456"},
 	{false, "urn:foo:A123,456", "urn:FOO:a123,456"},
