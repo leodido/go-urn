@@ -3,25 +3,23 @@ package urn
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestUrn(t *testing.T) {
-	for ii, tt := range tests {
-		urn, ok := Parse(tt.in)
-
-		if ok {
-			require.True(t, tt.ok, herror(ii, tt))
-			require.Equal(t, tt.obj.prefix, urn.prefix, herror(ii, tt))
-			require.Equal(t, tt.obj.ID, urn.ID, herror(ii, tt))
-			require.Equal(t, tt.obj.SS, urn.SS, herror(ii, tt))
-			require.Equal(t, tt.str, urn.String(), herror(ii, tt))
-			require.Equal(t, tt.norm, urn.Normalize().String(), herror(ii, tt))
-		} else {
-			require.False(t, tt.ok, herror(ii, tt))
-			require.Empty(t, urn, herror(ii, tt))
-		}
+func TestDefaultPrefixWhenString(t *testing.T) {
+	u := &URN{
+		ID: "pippo",
+		SS: "pluto",
 	}
+
+	assert.Equal(t, "urn:pippo:pluto", u.String())
+}
+
+func TestParseSignature(t *testing.T) {
+	urn, ok := Parse([]byte(``))
+	assert.Nil(t, urn)
+	assert.False(t, ok)
 }
 
 func TestLexicalEquivalence(t *testing.T) {
@@ -31,15 +29,15 @@ func TestLexicalEquivalence(t *testing.T) {
 
 		if oklx && okrx {
 
-			require.True(t, urnlx.Equal(urnlx))
-			require.True(t, urnrx.Equal(urnrx))
+			assert.True(t, urnlx.Equal(urnlx))
+			assert.True(t, urnrx.Equal(urnrx))
 
 			if tt.eq {
-				require.True(t, urnlx.Equal(urnrx), ierror(ii))
-				require.True(t, urnrx.Equal(urnlx), ierror(ii))
+				assert.True(t, urnlx.Equal(urnrx), ierror(ii))
+				assert.True(t, urnrx.Equal(urnlx), ierror(ii))
 			} else {
-				require.False(t, urnlx.Equal(urnrx), ierror(ii))
-				require.False(t, urnrx.Equal(urnlx), ierror(ii))
+				assert.False(t, urnlx.Equal(urnrx), ierror(ii))
+				assert.False(t, urnrx.Equal(urnlx), ierror(ii))
 			}
 		} else {
 			t.Log("Something wrong in the testing table ...")

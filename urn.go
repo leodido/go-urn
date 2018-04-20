@@ -1,25 +1,8 @@
-// Package urn implements RFC 2141.
-//
-// It provides a parser capable, given a string respecting valid syntax as per RFC 2141, to instantiate an URN type.
-// Furthermore this package provides methods to perform normalization and lexical equivalence on URN instances.
 package urn
 
 import (
 	"strings"
-
-	pcre "github.com/gijsbers/go-pcre"
 )
-
-var re = `^
-	(?:(?P<pre>[uU][rR][nN]):(?!urn:))
-
-	(?P<nid>[A-Za-z0-9][A-Za-z0-9-]{0,31}):
-
-	(?P<nss>(?:[A-Za-z0-9()+,\-.:=@;$_!*']|[%][A-Fa-f0-9][A-Fa-f0-9])+)
-$`
-
-var pattern = pcre.MustCompile(re, pcre.EXTENDED)
-var hexrepr = pcre.MustCompile("[%][A-F0-9]{2}", 0)
 
 // URN represents an Uniform Resource Name.
 //
@@ -32,23 +15,23 @@ type URN struct {
 	prefix string // Static prefix. Equal to "urn" when empty.
 	ID     string // Namespace identifier
 	SS     string // Namespace specific string
+	norm   string // Normalized namespace specific string
 }
 
-// Parse is responsible to create an URN instance from a string matching the correct URN syntax.
-func Parse(u string) (*URN, bool) {
-	matcher := pattern.MatcherString(u, 0)
-	matches := matcher.Matches()
-
-	if matches {
-		urn := &URN{}
-		urn.prefix, _ = matcher.NamedString("pre")
-		urn.ID, _ = matcher.NamedString("nid")
-		urn.SS, _ = matcher.NamedString("nss")
-
-		return urn, matches
+// Normalize turns the receiving URN into its norm version.
+//
+// Which means: lowercase prefix, lowercase namespace identifier, and immutate namespace specific string chars (except <hex> tokens which are lowercased).
+func (u *URN) Normalize() *URN {
+	return &URN{
+		prefix: "urn",
+		ID:     strings.ToLower(u.ID),
+		SS:     u.norm,
 	}
+}
 
-	return nil, matches
+// Equal checks the lexical equivalence of the current URN with another one.
+func (u *URN) Equal(x *URN) bool {
+	return *u.Normalize() == *x.Normalize()
 }
 
 // String reassembles the URN into a valid URN string.
@@ -69,30 +52,12 @@ func (u *URN) String() string {
 	return res
 }
 
-// Normalize turns the receiving URN into its norm version.
-//
-// Which means: lowercase prefix, lowercase namespace identifier, and immutate namespace specific string chars (except <hex> tokens which are lowercased).
-func (u *URN) Normalize() *URN {
-	norm := ""
-	ss := u.SS
-	matcher := hexrepr.MatcherString(ss, 0)
-	for matcher.MatchString(ss, 0) {
-		indexes := matcher.Index()
-		from := indexes[0]
-		to := indexes[1]
-		norm += ss[:from] + strings.ToLower(ss[from:to])
-		ss = ss[to:]
+// Parse is responsible to create an URN instance from a byte array matching the correct URN syntax.
+func Parse(u []byte) (*URN, bool) {
+	urn, err := NewMachine().Parse(u)
+	if err != nil {
+		return nil, false
 	}
-	norm += ss
 
-	return &URN{
-		prefix: "urn",
-		ID:     strings.ToLower(u.ID),
-		SS:     norm,
-	}
-}
-
-// Equal checks the lexical equivalence of the current URN with another one.
-func (u *URN) Equal(x *URN) bool {
-	return *u.Normalize() == *x.Normalize()
+	return urn, true
 }
