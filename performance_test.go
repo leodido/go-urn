@@ -32,7 +32,7 @@ func BenchmarkParse(b *testing.B) {
 	for ii, tt := range benchs {
 		outcome := (map[bool]string{true: "ok", false: "no"})[tt.ok]
 		b.Run(
-			fmt.Sprintf("%s/%02d/%s/", outcome, ii, rxpad(tt.in, 45)),
+			fmt.Sprintf("%s/%02d/%s/", outcome, ii, rxpad(string(tt.in), 45)),
 			func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
 					Parse(tt.in)
