@@ -58,12 +58,12 @@ func Parse(u string) (*URN, bool) {
 //
 // Default URN prefix is "urn".
 func (u *URN) String() string {
-	res := u.prefix
+	var res string
 	if u.ID != "" && u.SS != "" {
-		if res == "" {
+		if u.prefix == "" {
 			res += "urn"
 		}
-		res += ":" + u.ID + ":" + u.SS
+		res += u.prefix + ":" + u.ID + ":" + u.SS
 	}
 
 	return res
