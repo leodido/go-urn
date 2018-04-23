@@ -1,6 +1,9 @@
 package urn
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 func ierror(index int) string {
 	return "Test case num. " + strconv.Itoa(index+1)
@@ -8,6 +11,11 @@ func ierror(index int) string {
 
 func herror(index int, test testCase) string {
 	return ierror(index) + ", input \"" + test.in + "\""
+}
+
+func rxpad(str string, lim int) string {
+	str = str + strings.Repeat(" ", lim)
+	return str[:lim]
 }
 
 type testCase struct {
