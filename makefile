@@ -1,7 +1,9 @@
 SHELL := /bin/bash
 
 machine.go: machine.go.rl
-	ragel -Z -G2 -o $@ $<
+	ragel -Z -G2 -e -o $@ $<
+	@gofmt -w -s $@
+	@sed -i '/^\/\/line/d' $@
 
 .PHONY: build
 build: machine.go
