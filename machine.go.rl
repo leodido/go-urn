@@ -2,7 +2,6 @@ package urn
 
 import (
     "fmt"
-    "strings"
 )
 
 var (
@@ -24,22 +23,26 @@ action mark {
     m.pb = m.p
 }
 
+action tolower {
+    m.tolower = append(m.tolower, m.p - m.pb)
+}
+
 action set_pre {
-    m.output.prefix = string(m.text())
+    output.prefix = string(m.text())
 }
 
 action set_nid {
-    m.output.ID = string(m.text())
+    output.ID = string(m.text())
 }
 
-action set_hex {
-    m.output.norm += strings.ToLower(string(m.text()))
-    m.output.SS += string(m.text())
-}
-
-action set_sss {
-    m.output.norm += string(m.text())
-    m.output.SS += string(m.text())
+action set_nss {
+    raw := m.text()
+    output.SS = string(raw)
+    // Iterate upper letters lowering them
+    for _, i := range m.tolower {
+        raw[i] = raw[i] + 32
+    }
+    output.norm = string(raw)
 }
 
 action err_pre {
@@ -82,33 +85,32 @@ pre = ([uU][rR][nN] @err(err_pre)) >mark %set_pre;
 
 nid = (alnum >mark (alnum | '-'){0,31}) %set_nid;
 
-hex = '%' >mark alnum{2} %set_hex $err(err_hex);
+hex = '%' (digit | lower | upper >tolower){2} $err(err_hex);
 
-sss = (alnum | [()+,\-.:=@;$_!*']) >mark %set_sss;
+sss = (alnum | [()+,\-.:=@;$_!*']);
 
 nss = (sss | hex)+ $err(err_nss);
 
 fail := (any - [\n\r])* @err{ fgoto main; };
 
-main := (pre ':' (nid - pre %err(err_urn)) $err(err_nid) ':' nss) $err(err_parse);
+main := (pre ':' (nid - pre %err(err_urn)) $err(err_nid) ':' nss >mark %set_nss) $err(err_parse);
 
 }%%
 
-%% write data;
+%% write data noerror noprefix;
 
 // Machine is the interface representing the FSM
 type Machine interface {
-    Err() error
+    Error() error
     Parse(input []byte) (*URN, error)
 }
 
 type machine struct {
-    data         []byte
-    cs           int
-    p, pe, eof   int
-    pb           int
-    err          error
-    output       *URN
+    data              []byte
+    cs                int
+    p, pe, eof, pb    int
+    err               error
+    tolower           []int
 }
 
 // NewMachine creates a new FSM able to parse RFC 2141 strings.
@@ -127,7 +129,7 @@ func NewMachine() Machine {
 // Err returns the error that occurred on the last call to Parse.
 //
 // If the result is nil, then the line was parsed successfully.
-func (m *machine) Err() error {
+func (m *machine) Error() error {
     return m.err
 }
 
@@ -143,14 +145,15 @@ func (m *machine) Parse(input []byte) (*URN, error) {
     m.pe = len(input)
     m.eof = len(input)
     m.err = nil
-    m.output = &URN{}
+    m.tolower = []int{}
+    output := &URN{}
 
     %% write init;
     %% write exec;
 
-    if m.cs < urn_first_final || m.cs == urn_en_fail {
+    if m.cs < first_final || m.cs == en_fail {
         return nil, m.err
     }
 
-    return m.output, nil
+    return output, nil
 }

@@ -1,9 +1,7 @@
-//line machine.go.rl:1
 package urn
 
 import (
 	"fmt"
-	"strings"
 )
 
 var (
@@ -15,49 +13,39 @@ var (
 	errParse          = "parsing error [col %d]"
 )
 
-//line machine.go.rl:95
 
-//line machine.go:25
-const urn_start int = 1
-const urn_first_final int = 44
-const urn_error int = 0
+const start int = 1
+const first_final int = 44
 
-const urn_en_fail int = 46
-const urn_en_main int = 1
+const en_fail int = 46
+const en_main int = 1
 
-//line machine.go.rl:98
 
 // Machine is the interface representing the FSM
 type Machine interface {
-	Err() error
+	Error() error
 	Parse(input []byte) (*URN, error)
 }
 
 type machine struct {
-	data       []byte
-	cs         int
-	p, pe, eof int
-	pb         int
-	err        error
-	output     *URN
+	data           []byte
+	cs             int
+	p, pe, eof, pb int
+	err            error
+	tolower        []int
 }
 
 // NewMachine creates a new FSM able to parse RFC 2141 strings.
 func NewMachine() Machine {
 	m := &machine{}
 
-//line machine.go.rl:119
-//line machine.go.rl:120
-//line machine.go.rl:121
-//line machine.go.rl:122
-//line machine.go.rl:123
 	return m
 }
 
 // Err returns the error that occurred on the last call to Parse.
 //
 // If the result is nil, then the line was parsed successfully.
-func (m *machine) Err() error {
+func (m *machine) Error() error {
 	return m.err
 }
 
@@ -73,16 +61,14 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 	m.pe = len(input)
 	m.eof = len(input)
 	m.err = nil
-	m.output = &URN{}
+	m.tolower = []int{}
+	output := &URN{}
 
-//line machine.go:91
 	{
-		m.cs = urn_start
+		m.cs = start
 	}
 
-//line machine.go.rl:149
 
-//line machine.go:98
 	{
 		if (m.p) == (m.pe) {
 			goto _test_eof
@@ -193,7 +179,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		goto tr0
 	tr0:
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -203,7 +188,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		goto st0
 	tr3:
-//line machine.go.rl:45
 		m.err = fmt.Errorf(errPrefix, m.p)
 		(m.p)--
 
@@ -211,7 +195,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -221,7 +204,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		goto st0
 	tr6:
-//line machine.go.rl:51
 		m.err = fmt.Errorf(errIdentifier, m.p)
 		(m.p)--
 
@@ -229,7 +211,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -239,7 +220,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		goto st0
 	tr41:
-//line machine.go.rl:57
 		m.err = fmt.Errorf(errSpecificString, m.p)
 		(m.p)--
 
@@ -247,7 +227,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -257,7 +236,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		goto st0
 	tr44:
-//line machine.go.rl:69
 		m.err = fmt.Errorf(errHex, m.p)
 		(m.p)--
 
@@ -265,7 +243,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:57
 		m.err = fmt.Errorf(errSpecificString, m.p)
 		(m.p)--
 
@@ -273,33 +250,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:75
-		m.err = fmt.Errorf(errParse, m.p)
-		(m.p)--
-
-		{
-			goto st46
-		}
-
-		goto st0
-	tr48:
-//line machine.go.rl:45
-		m.err = fmt.Errorf(errPrefix, m.p)
-		(m.p)--
-
-		{
-			goto st46
-		}
-
-//line machine.go.rl:51
-		m.err = fmt.Errorf(errIdentifier, m.p)
-		(m.p)--
-
-		{
-			goto st46
-		}
-
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -309,15 +259,13 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		goto st0
 	tr50:
-//line machine.go.rl:63
-		m.err = fmt.Errorf(errNoUrnWithinID, m.p)
+		m.err = fmt.Errorf(errPrefix, m.p)
 		(m.p)--
 
 		{
 			goto st46
 		}
 
-//line machine.go.rl:51
 		m.err = fmt.Errorf(errIdentifier, m.p)
 		(m.p)--
 
@@ -325,7 +273,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto st46
 		}
 
-//line machine.go.rl:75
 		m.err = fmt.Errorf(errParse, m.p)
 		(m.p)--
 
@@ -334,13 +281,34 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 
 		goto st0
-//line machine.go:334
+	tr52:
+		m.err = fmt.Errorf(errNoUrnWithinID, m.p)
+		(m.p)--
+
+		{
+			goto st46
+		}
+
+		m.err = fmt.Errorf(errIdentifier, m.p)
+		(m.p)--
+
+		{
+			goto st46
+		}
+
+		m.err = fmt.Errorf(errParse, m.p)
+		(m.p)--
+
+		{
+			goto st46
+		}
+
+		goto st0
 	st_case_0:
 	st0:
 		m.cs = 0
 		goto _out
 	tr1:
-//line machine.go.rl:23
 		m.pb = m.p
 
 		goto st2
@@ -349,7 +317,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof2
 		}
 	st_case_2:
-//line machine.go:350
 		switch (m.data)[(m.p)] {
 		case 82:
 			goto st3
@@ -379,8 +346,7 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		goto tr0
 	tr5:
-//line machine.go.rl:27
-		m.output.prefix = string(m.text())
+		output.prefix = string(m.text())
 
 		goto st5
 	st5:
@@ -388,7 +354,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof5
 		}
 	st_case_5:
-//line machine.go:390
 		switch (m.data)[(m.p)] {
 		case 85:
 			goto tr8
@@ -409,7 +374,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		goto tr6
 	tr7:
-//line machine.go.rl:23
 		m.pb = m.p
 
 		goto st6
@@ -418,7 +382,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof6
 		}
 	st_case_6:
-//line machine.go:421
 		switch (m.data)[(m.p)] {
 		case 45:
 			goto st7
@@ -1168,8 +1131,7 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		goto tr6
 	tr10:
-//line machine.go.rl:31
-		m.output.ID = string(m.text())
+		output.ID = string(m.text())
 
 		goto st38
 	st38:
@@ -1177,7 +1139,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof38
 		}
 	st_case_38:
-//line machine.go:1181
 		switch (m.data)[(m.p)] {
 		case 33:
 			goto tr42
@@ -1209,25 +1170,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		goto tr41
 	tr42:
-//line machine.go.rl:23
-		m.pb = m.p
-
-		goto st44
-	tr51:
-//line machine.go.rl:40
-		m.output.norm += string(m.text())
-		m.output.SS += string(m.text())
-
-//line machine.go.rl:23
-		m.pb = m.p
-
-		goto st44
-	tr53:
-//line machine.go.rl:35
-		m.output.norm += strings.ToLower(string(m.text()))
-		m.output.SS += string(m.text())
-
-//line machine.go.rl:23
 		m.pb = m.p
 
 		goto st44
@@ -1236,57 +1178,37 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof44
 		}
 	st_case_44:
-//line machine.go:1245
 		switch (m.data)[(m.p)] {
 		case 33:
-			goto tr51
+			goto st44
 		case 36:
-			goto tr51
+			goto st44
 		case 37:
-			goto tr52
+			goto st39
 		case 61:
-			goto tr51
+			goto st44
 		case 95:
-			goto tr51
+			goto st44
 		}
 		switch {
 		case (m.data)[(m.p)] < 48:
 			if 39 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 46 {
-				goto tr51
+				goto st44
 			}
 		case (m.data)[(m.p)] > 59:
 			switch {
 			case (m.data)[(m.p)] > 90:
 				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
-					goto tr51
+					goto st44
 				}
 			case (m.data)[(m.p)] >= 64:
-				goto tr51
+				goto st44
 			}
 		default:
-			goto tr51
+			goto st44
 		}
 		goto tr41
 	tr43:
-//line machine.go.rl:23
-		m.pb = m.p
-
-		goto st39
-	tr52:
-//line machine.go.rl:40
-		m.output.norm += string(m.text())
-		m.output.SS += string(m.text())
-
-//line machine.go.rl:23
-		m.pb = m.p
-
-		goto st39
-	tr54:
-//line machine.go.rl:35
-		m.output.norm += strings.ToLower(string(m.text()))
-		m.output.SS += string(m.text())
-
-//line machine.go.rl:23
 		m.pb = m.p
 
 		goto st39
@@ -1295,7 +1217,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof39
 		}
 	st_case_39:
-//line machine.go:1309
 		switch {
 		case (m.data)[(m.p)] < 65:
 			if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
@@ -1306,9 +1227,13 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				goto st40
 			}
 		default:
-			goto st40
+			goto tr46
 		}
 		goto tr44
+	tr46:
+		m.tolower = append(m.tolower, m.p-m.pb)
+
+		goto st40
 	st40:
 		if (m.p)++; (m.p) == (m.pe) {
 			goto _test_eof40
@@ -1324,9 +1249,13 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				goto st45
 			}
 		default:
-			goto st45
+			goto tr48
 		}
 		goto tr44
+	tr48:
+		m.tolower = append(m.tolower, m.p-m.pb)
+
+		goto st45
 	st45:
 		if (m.p)++; (m.p) == (m.pe) {
 			goto _test_eof45
@@ -1334,36 +1263,35 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 	st_case_45:
 		switch (m.data)[(m.p)] {
 		case 33:
-			goto tr53
+			goto st44
 		case 36:
-			goto tr53
+			goto st44
 		case 37:
-			goto tr54
+			goto st39
 		case 61:
-			goto tr53
+			goto st44
 		case 95:
-			goto tr53
+			goto st44
 		}
 		switch {
 		case (m.data)[(m.p)] < 48:
 			if 39 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 46 {
-				goto tr53
+				goto st44
 			}
 		case (m.data)[(m.p)] > 59:
 			switch {
 			case (m.data)[(m.p)] > 90:
 				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
-					goto tr53
+					goto st44
 				}
 			case (m.data)[(m.p)] >= 64:
-				goto tr53
+				goto st44
 			}
 		default:
-			goto tr53
+			goto st44
 		}
 		goto tr44
 	tr8:
-//line machine.go.rl:23
 		m.pb = m.p
 
 		goto st41
@@ -1372,7 +1300,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 			goto _test_eof41
 		}
 	st_case_41:
-//line machine.go:1387
 		switch (m.data)[(m.p)] {
 		case 45:
 			goto st7
@@ -1423,7 +1350,7 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		default:
 			goto st8
 		}
-		goto tr48
+		goto tr50
 	st43:
 		if (m.p)++; (m.p) == (m.pe) {
 			goto _test_eof43
@@ -1444,7 +1371,7 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		default:
 			goto st9
 		}
-		goto tr50
+		goto tr52
 	st46:
 		if (m.p)++; (m.p) == (m.pe) {
 			goto _test_eof46
@@ -1599,18 +1526,16 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 		if (m.p) == (m.eof) {
 			switch m.cs {
-			case 45:
-//line machine.go.rl:35
-				m.output.norm += strings.ToLower(string(m.text()))
-				m.output.SS += string(m.text())
-
-			case 44:
-//line machine.go.rl:40
-				m.output.norm += string(m.text())
-				m.output.SS += string(m.text())
+			case 44, 45:
+				raw := m.text()
+				output.SS = string(raw)
+				// Iterate upper letters lowering them
+				for _, i := range m.tolower {
+					raw[i] = raw[i] + 32
+				}
+				output.norm = string(raw)
 
 			case 1, 2, 4:
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1619,7 +1544,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 3:
-//line machine.go.rl:45
 				m.err = fmt.Errorf(errPrefix, m.p)
 				(m.p)--
 
@@ -1627,7 +1551,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1636,7 +1559,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 41:
-//line machine.go.rl:51
 				m.err = fmt.Errorf(errIdentifier, m.p)
 				(m.p)--
 
@@ -1644,7 +1566,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1653,7 +1574,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 38:
-//line machine.go.rl:57
 				m.err = fmt.Errorf(errSpecificString, m.p)
 				(m.p)--
 
@@ -1661,7 +1581,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1670,7 +1589,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 42:
-//line machine.go.rl:45
 				m.err = fmt.Errorf(errPrefix, m.p)
 				(m.p)--
 
@@ -1678,7 +1596,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:51
 				m.err = fmt.Errorf(errIdentifier, m.p)
 				(m.p)--
 
@@ -1686,7 +1603,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1695,7 +1611,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 43:
-//line machine.go.rl:63
 				m.err = fmt.Errorf(errNoUrnWithinID, m.p)
 				(m.p)--
 
@@ -1703,7 +1618,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:51
 				m.err = fmt.Errorf(errIdentifier, m.p)
 				(m.p)--
 
@@ -1711,7 +1625,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1720,7 +1633,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				}
 
 			case 39, 40:
-//line machine.go.rl:69
 				m.err = fmt.Errorf(errHex, m.p)
 				(m.p)--
 
@@ -1728,7 +1640,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:57
 				m.err = fmt.Errorf(errSpecificString, m.p)
 				(m.p)--
 
@@ -1736,7 +1647,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go.rl:75
 				m.err = fmt.Errorf(errParse, m.p)
 				(m.p)--
 
@@ -1744,7 +1654,6 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 					goto st46
 				}
 
-//line machine.go:1653
 			}
 		}
 
@@ -1753,10 +1662,9 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		}
 	}
 
-//line machine.go.rl:150
-	if m.cs < urn_first_final || m.cs == urn_en_fail {
+	if m.cs < first_final || m.cs == en_fail {
 		return nil, m.err
 	}
 
-	return m.output, nil
+	return output, nil
 }
