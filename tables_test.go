@@ -18,11 +18,6 @@ func rxpad(str string, lim int) string {
 	return str[:lim]
 }
 
-func rxpad(str string, lim int) string {
-	str = str + strings.Repeat(" ", lim)
-	return str[:lim]
-}
-
 type testCase struct {
 	in   []byte // the input
 	ok   bool   // whether it is valid or not

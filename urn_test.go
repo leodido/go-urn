@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDefaultPrefixWhenString(t *testing.T) {
@@ -43,13 +42,4 @@ func TestLexicalEquivalence(t *testing.T) {
 			t.Log("Something wrong in the testing table ...")
 		}
 	}
-}
-
-func TestDefaultPrefixWhenString(t *testing.T) {
-	u := &URN{
-		ID: "pippo",
-		SS: "pluto",
-	}
-
-	require.Equal(t, "urn:pippo:pluto", u.String())
 }
