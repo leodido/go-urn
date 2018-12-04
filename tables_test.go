@@ -27,7 +27,116 @@ type testCase struct {
 	estr string // error string
 }
 
-var tests = []testCase{
+var urnlexTestCases = []testCase{
+	// Italian act
+	{
+		[]byte("urn:lex:it:stato:legge:2003-09-21;456"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "it:stato:legge:2003-09-21;456",
+		},
+		"urn:lex:it:stato:legge:2003-09-21;456",
+		"urn:lex:it:stato:legge:2003-09-21;456",
+		"",
+	},
+	// Italian decree
+	// fixme(leodido)
+	// verify whether it is correct or not that ~ is not accepted
+	// does it requires RFC 8141 (issue #17) ?
+	// {
+	// 	[]byte("urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5"),
+	// 	true,
+	// 	&URN{
+	// 		prefix: "urn",
+	// 		ID:     "lex",
+	// 		SS:     "it:ministero.giustizia:decreto:1992-07-24;358~art5",
+	// 	},
+	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
+	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
+	// 	"",
+	// },
+	// French act
+	{
+		[]byte("urn:lex:fr:etat:lois:2004-12-06;321"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "fr:etat:lois:2004-12-06;321",
+		},
+		"urn:lex:fr:etat:lois:2004-12-06;321",
+		"urn:lex:fr:etat:lois:2004-12-06;321",
+		"",
+	},
+	// Spanish act
+	{
+		[]byte("urn:lex:es:estado:ley:2002-07-12;123"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "es:estado:ley:2002-07-12;123",
+		},
+		"urn:lex:es:estado:ley:2002-07-12;123",
+		"urn:lex:es:estado:ley:2002-07-12;123",
+		"",
+	},
+	// Glarus Swiss Canton decree
+	{
+		[]byte("urn:lex:ch;glarus:regiere:erlass:2007-10-15;963"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "ch;glarus:regiere:erlass:2007-10-15;963",
+		},
+		"urn:lex:ch;glarus:regiere:erlass:2007-10-15;963",
+		"urn:lex:ch;glarus:regiere:erlass:2007-10-15;963",
+		"",
+	},
+	// EU Council Directive
+	{
+		[]byte("urn:lex:eu:council:directive:2010-03-09;2010-19-UE"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "eu:council:directive:2010-03-09;2010-19-UE",
+		},
+		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
+		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
+		"",
+	},
+	{
+		[]byte("urn:lex:eu:council:directive:2010-03-09;2010-19-UE"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "eu:council:directive:2010-03-09;2010-19-UE",
+		},
+		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
+		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
+		"",
+	},
+	// US FSC decision
+	{
+		[]byte("urn:lex:us:federal.supreme.court:decision:1963-03-18;372.us.335"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "us:federal.supreme.court:decision:1963-03-18;372.us.335",
+		},
+		"urn:lex:us:federal.supreme.court:decision:1963-03-18;372.us.335",
+		"urn:lex:us:federal.supreme.court:decision:1963-03-18;372.us.335",
+		"",
+	},
+}
+
+var genericTestCases = []testCase{
 	// ok
 	{
 		[]byte("urn:simple:simple"),
