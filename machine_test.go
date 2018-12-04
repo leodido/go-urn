@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestParse(t *testing.T) {
-	for ii, tt := range tests {
+func exec(t *testing.T, testCases []testCase) {
+	for ii, tt := range testCases {
 		urn, err := NewMachine().Parse([]byte(tt.in))
 		ok := err == nil
 
@@ -24,4 +24,12 @@ func TestParse(t *testing.T) {
 			assert.Equal(t, tt.estr, err.Error())
 		}
 	}
+}
+
+func TestParse(t *testing.T) {
+	exec(t, genericTestCases)
+}
+
+func TestParseUrnLex(t *testing.T) {
+	exec(t, urnlexTestCases)
 }
