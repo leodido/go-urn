@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   go: circleci/go@1.7.0
+  codecov: codecov/codecov@3.2.0
 
 jobs:
   test:
@@ -12,7 +13,6 @@ jobs:
       name: go/default
       tag: <<parameters.go-version>>
     steps:
-      - run: go version
       - checkout
       - go/load-cache
       - go/mod-download
@@ -22,6 +22,11 @@ jobs:
           coverprofile: coverage.out
           race: true
           verbose: true
+      - when:
+          condition:
+            equal: ["1.17", << parameters.go-version >>]
+          steps:
+            - codecov/upload
 
 workflows:
   tests-matrix:
