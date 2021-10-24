@@ -24,7 +24,9 @@ jobs:
           verbose: true
       - when:
           condition:
-            equal: ["1.17", << parameters.go-version >>]
+            and:
+              - equal: ["1.17", << parameters.go-version >>]
+              - equal: ["master", << pipeline.git.branch >>]
           steps:
             - codecov/upload
 
