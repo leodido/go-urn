@@ -1,4 +1,4 @@
-[![Build](https://img.shields.io/travis/leodido/go-urn/master.svg?style=for-the-badge)](https://travis-ci.org/leodido/go-urn) [![Coverage](https://img.shields.io/codecov/c/github/leodido/go-urn.svg?style=for-the-badge)](https://codecov.io/gh/leodido/go-urn) [![Documentation](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](https://godoc.org/github.com/leodido/go-urn)
+[![Build](https://img.shields.io/circleci/build/github/leodido/go-urn?style=for-the-badge)](https://app.circleci.com/pipelines/github/leodido/go-urn) [![Coverage](https://img.shields.io/codecov/c/github/leodido/go-urn.svg?style=for-the-badge)](https://codecov.io/gh/leodido/go-urn) [![Documentation](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](https://godoc.org/github.com/leodido/go-urn)
 
 **A parser for URNs**.
 
