@@ -1,0 +1,32 @@
+version: 2.1
+
+orbs:
+  go: circleci/go@1.7.0
+
+jobs:
+  test:
+    parameters:
+      go-version:
+        type: string
+    executor:
+      name: go/default
+      tag: <<parameters.go-version>>
+    steps:
+      - run: go version
+      - checkout
+      - go/load-cache
+      - go/mod-download
+      - go/save-cache
+      - go/test:
+          covermode: atomic
+          coverprofile: coverage.out
+          race: true
+          verbose: true
+
+workflows:
+  tests-matrix:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              go-version: ["1.13", "1.14", "1.15", "1.16", "1.17"]
