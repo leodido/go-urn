@@ -52,4 +52,30 @@ no/19/urn:UrN:NSS__________________________________/-4      20000000      399 ns
 
 ---
 
+## Example
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/leodido/go-urn"
+)
+
+func main() {
+	var uid = "URN:foo:a123,456"
+
+	u, ok := urn.Parse([]byte(uid))
+	if !ok {
+		panic("error parsing urn")
+	}
+
+	fmt.Println(u.ID)
+	fmt.Println(u.SS)
+
+	// Output:
+	// foo
+	// a123,456
+}
+```
+
 [![Analytics](https://ga-beacon.appspot.com/UA-49657176-1/go-urn?flat)](https://github.com/igrigorik/ga-beacon)
