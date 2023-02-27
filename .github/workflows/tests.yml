@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
-        if: ${{ matrix.go == '1.19' }}
+        if: github.ref == 'refs/heads/master'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
