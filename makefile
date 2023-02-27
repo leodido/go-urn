@@ -41,7 +41,7 @@ bench: *_test.go machine.go
 	go test -bench=. -benchmem -benchtime=5s ./...
 
 .PHONY: tests
-tests: *_test.go machine.go
+tests: *_test.go 
 	$(GO_TEST) ./...
 
 .PHONY: snake2camel
