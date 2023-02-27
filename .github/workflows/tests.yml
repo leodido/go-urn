@@ -64,5 +64,6 @@ jobs:
         uses: codecov/codecov-action@v3
         if: ${{ matrix.go == '1.19' }}
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
