@@ -1,6 +1,4 @@
-// SPDX-License-Identifier: MIT
-//
-// Copyright © 2019- Leonardo Di Donato <leodidonato@gmail.com>
+// SPDX-License-Identifier: GPL-3.0
 package main
 
 import (
