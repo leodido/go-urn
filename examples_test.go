@@ -2,6 +2,7 @@ package urn_test
 
 import (
 	"fmt"
+
 	"github.com/leodido/go-urn"
 )
 
@@ -50,4 +51,24 @@ func ExampleURN_Equal() {
 	}
 
 	// Output: URN:foo:a123,456 equals URN:FOO:a123,456
+}
+
+func ExampleParseAsSCIM() {
+	var scimURN = "urn:ietf:params:scim:schemas:core:2.0:User"
+
+	s, err := urn.ParseAsSCIM([]byte(scimURN))
+	if err == nil {
+		fmt.Println(s.URN().ID)
+		fmt.Println(s.URN().SS)
+		fmt.Println(s.Type)
+		fmt.Println(s.Name)
+		fmt.Println(s.Other)
+	}
+
+	// Output:
+	// ietf
+	// params:scim:schemas:core:2.0:User
+	// schemas
+	// core
+	// 2.0:User
 }
