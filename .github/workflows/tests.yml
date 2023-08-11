@@ -15,7 +15,14 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.16', '1.17', '1.18', '1.19']
+        go: [
+          '1.16',
+          '1.17',
+          '1.18',
+          '1.19',
+          '1.20',
+          '1.21',
+        ]
         include:
           # Set the minimum Go patch version for the given Go minor
           - go: '1.16'
@@ -26,6 +33,10 @@ jobs:
             GO_VERSION: '~1.18.0'
           - go: '1.19'
             GO_VERSION: '~1.19.0'
+          - go: '1.20'
+            GO_VERSION: '~1.20.0'
+          - go: '1.21'
+            GO_VERSION: '~1.21.0'
     runs-on: ${{ matrix.os }}
 
     steps:
