@@ -17,8 +17,8 @@ const errInvalidURN = "invalid URN: %s"
 // Details at https://tools.ietf.org/html/rfc2141.
 type URN struct {
 	prefix string // Static prefix. Equal to "urn" when empty.
-	ID     string // Namespace identifier
-	SS     string // Namespace specific string
+	ID     string // Namespace identifier (NID)
+	SS     string // Namespace specific string (NSS)
 	norm   string // Normalized namespace specific string
 }
 
@@ -71,7 +71,7 @@ func (u URN) MarshalJSON() ([]byte, error) {
 	return json.Marshal(u.String())
 }
 
-// MarshalJSON unmarshals a URN from JSON string form (e.g. `"urn:oid:1.2.3.4"`).
+// UnmarshalJSON unmarshals a URN from JSON string form (e.g. `"urn:oid:1.2.3.4"`).
 func (u *URN) UnmarshalJSON(bytes []byte) error {
 	var str string
 	if err := json.Unmarshal(bytes, &str); err != nil {
