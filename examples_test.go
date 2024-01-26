@@ -2,6 +2,7 @@ package urn_test
 
 import (
 	"fmt"
+
 	"github.com/leodido/go-urn"
 )
 
@@ -11,10 +12,12 @@ func ExampleParse() {
 	if u, ok := urn.Parse([]byte(uid)); ok {
 		fmt.Println(u.ID)
 		fmt.Println(u.SS)
+		fmt.Println(u.SCIM())
 	}
 
 	// Output: foo
 	// a123,456
+	// <nil>
 }
 
 func ExampleURN_MarshalJSON() {
@@ -50,4 +53,30 @@ func ExampleURN_Equal() {
 	}
 
 	// Output: URN:foo:a123,456 equals URN:FOO:a123,456
+}
+
+func ExampleParse_scim() {
+	input := "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+
+	u, ok := urn.Parse([]byte(input), urn.WithParsingMode(urn.RFC7643Only))
+	if !ok {
+		panic("invalid SCIM urn")
+	}
+	data, err := u.MarshalJSON()
+	if err != nil {
+		panic("couldn't marshal")
+	}
+	fmt.Println(string(data))
+	fmt.Println(u.IsSCIM())
+	scim := u.SCIM()
+	fmt.Println(scim.Type.String())
+	fmt.Println(scim.Name)
+	fmt.Println(scim.Other)
+
+	// Output:
+	// "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+	// true
+	// api
+	// messages
+	// 2.0:ListResponse
 }
