@@ -20,6 +20,8 @@ type URN struct {
 	ID     string // Namespace identifier (NID)
 	SS     string // Namespace specific string (NSS)
 	norm   string // Normalized namespace specific string
+	kind   Kind
+	scim   *SCIM
 }
 
 // Normalize turns the receiving URN into its norm version.
@@ -56,9 +58,9 @@ func (u *URN) String() string {
 	return res
 }
 
-// Parse is responsible to create an URN instance from a byte array matching the correct URN syntax.
-func Parse(u []byte) (*URN, bool) {
-	urn, err := NewMachine().Parse(u)
+// Parse is responsible to create an URN instance from a byte array matching the correct URN syntax (RFC 2141).
+func Parse(u []byte, options ...Option) (*URN, bool) {
+	urn, err := NewMachine(options...).Parse(u)
 	if err != nil {
 		return nil, false
 	}
@@ -83,4 +85,16 @@ func (u *URN) UnmarshalJSON(bytes []byte) error {
 		*u = *value
 	}
 	return nil
+}
+
+func (u *URN) IsSCIM() bool {
+	return u.kind == RFC7643
+}
+
+func (u *URN) SCIM() *SCIM {
+	if !u.IsSCIM() {
+		return nil
+	}
+
+	return u.scim
 }
