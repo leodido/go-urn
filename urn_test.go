@@ -66,4 +66,9 @@ func TestJSONMarshaling(t *testing.T) {
 		err := json.Unmarshal([]byte(`"not a URN"`), &actual)
 		assert.EqualError(t, err, "invalid URN: not a URN")
 	})
+	t.Run("empty", func(t *testing.T) {
+		var actual URN
+		err := actual.UnmarshalJSON(nil)
+		assert.EqualError(t, err, "unexpected end of JSON input")
+	})
 }
