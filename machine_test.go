@@ -28,9 +28,6 @@ func exec(t *testing.T, testCases []testCase, mode ParsingMode) {
 			assert.Equal(t, tt.norm, urn.Normalize().String(), herror(ii, tt))
 			if mode == All || mode == RFC7643Only {
 				assert.Equal(t, tt.isSCIM, urn.IsSCIM(), herror(ii, tt))
-				// if tt.isSCIM {
-				// 	spew.Dump(urn.SCIM())
-				// }
 			}
 		} else {
 			assert.False(t, tt.ok, herror(ii, tt))
