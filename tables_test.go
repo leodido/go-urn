@@ -1254,6 +1254,24 @@ var urn2141OnlyTestCases = []testCase{
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
 		false,
 	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:%"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errHex, 35),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:%F"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errHex, 36),
+		false,
+	},
 
 	// no - Incomplete URNs
 	{
