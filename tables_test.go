@@ -226,6 +226,19 @@ var scimOnlyTestCases = []testCase{
 		"",
 		true,
 	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:%FF"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "api:messages:%FF",
+		},
+		"urn:ietf:params:scim:api:messages:%FF",
+		"urn:ietf:params:scim:api:messages:%ff",
+		"",
+		true,
+	},
 
 	// no
 	{
@@ -325,6 +338,24 @@ var scimOnlyTestCases = []testCase{
 		"",
 		"",
 		fmt.Sprintf(errSCIMOther, 36),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:%"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMOtherIncomplete, 34),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:%F"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMOtherIncomplete, 35),
 		false,
 	},
 }
@@ -861,6 +892,45 @@ var urn2141OnlyTestCases = []testCase{
 		false,
 	},
 	{
+		[]byte("urn:ciao:("),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ciao",
+			SS:     "(",
+		},
+		"urn:ciao:(",
+		"urn:ciao:(",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ciao:)"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ciao",
+			SS:     ")",
+		},
+		"urn:ciao:)",
+		"urn:ciao:)",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ciao:+"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ciao",
+			SS:     "+",
+		},
+		"urn:ciao:+",
+		"urn:ciao:+",
+		"",
+		false,
+	},
+	{
 		[]byte("urn:ciao::"),
 		true,
 		&URN{
@@ -1149,6 +1219,15 @@ var urn2141OnlyTestCases = []testCase{
 		false,
 	},
 	{
+		[]byte("urn:a:%A"), // the presence of an "%" character in an URN MUST be followed by two characters from the <hex> character set
+		false,
+		nil,
+		"",
+		"",
+		`expecting the specific string hex chars to be well-formed (%alnum{2}) [col 8]`,
+		false,
+	},
+	{
 		[]byte("urn:a:?"),
 		false,
 		nil,
@@ -1204,14 +1283,36 @@ var urn2141OnlyTestCases = []testCase{
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
 		false,
 	},
+	// TODO: verify
 	// {
-	// 	"urn:a",
+	// 	[]byte("urn:a"),
 	// 	false,
 	// 	nil,
 	// 	"",
 	// 	"",
 	// 	"",
+	// 	false,
 	// },
+	// {
+	// 	[]byte("urn:a:"),
+	// 	false,
+	// 	nil,
+	// 	"",
+	// 	"",
+	// 	"",
+	// 	false,
+	// },
+
+	// no, empty
+	{
+		[]byte(""),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 0),
+		false,
+	},
 }
 
 var equivalenceTests = []struct {
