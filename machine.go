@@ -387,12 +387,15 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		goto st0
 	tr44:
 
-		m.err = fmt.Errorf(errHex, m.p)
-		(m.p)--
+		if m.parsingMode == RFC2141Only || m.parsingMode == All {
+			m.err = fmt.Errorf(errHex, m.p)
+			(m.p)--
 
-		{
-			goto st95
+			{
+				goto st95
+			}
 		}
+		// Otherwise, we expect the machine to fallback to SCIM errors
 
 		m.err = fmt.Errorf(errSpecificString, m.p)
 		(m.p)--
@@ -537,12 +540,15 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 		goto st0
 	tr87:
 
-		m.err = fmt.Errorf(errHex, m.p)
-		(m.p)--
+		if m.parsingMode == RFC2141Only || m.parsingMode == All {
+			m.err = fmt.Errorf(errHex, m.p)
+			(m.p)--
 
-		{
-			goto st95
+			{
+				goto st95
+			}
 		}
+		// Otherwise, we expect the machine to fallback to SCIM errors
 
 		// In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
 		if m.parsingMode == All {
@@ -2799,12 +2805,15 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 			case 71, 72:
 
-				m.err = fmt.Errorf(errHex, m.p)
-				(m.p)--
+				if m.parsingMode == RFC2141Only || m.parsingMode == All {
+					m.err = fmt.Errorf(errHex, m.p)
+					(m.p)--
 
-				{
-					goto st95
+					{
+						goto st95
+					}
 				}
+				// Otherwise, we expect the machine to fallback to SCIM errors
 
 				// In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
 				if m.parsingMode == All {
@@ -2877,12 +2886,15 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 			case 39, 40:
 
-				m.err = fmt.Errorf(errHex, m.p)
-				(m.p)--
+				if m.parsingMode == RFC2141Only || m.parsingMode == All {
+					m.err = fmt.Errorf(errHex, m.p)
+					(m.p)--
 
-				{
-					goto st95
+					{
+						goto st95
+					}
 				}
+				// Otherwise, we expect the machine to fallback to SCIM errors
 
 				m.err = fmt.Errorf(errSpecificString, m.p)
 				(m.p)--

@@ -88,9 +88,12 @@ action err_urn {
 }
 
 action err_hex {
-    m.err = fmt.Errorf(errHex, m.p)
-    fhold;
-    fgoto fail;
+    if m.parsingMode == RFC2141Only || m.parsingMode == All {
+        m.err = fmt.Errorf(errHex, m.p)
+        fhold;
+        fgoto fail;
+    }
+    // Otherwise, we expect the machine to fallback to SCIM errors
 }
 
 action err_parse {
