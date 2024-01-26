@@ -1,6 +1,7 @@
 package urn
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -19,12 +20,13 @@ func rxpad(str string, lim int) string {
 }
 
 type testCase struct {
-	in   []byte // the input
-	ok   bool   // whether it is valid or not
-	obj  *URN   // a pointer to the resulting urn.URN instance
-	str  string // string representation
-	norm string // norm string representation
-	estr string // error string
+	in     []byte // the input
+	ok     bool   // whether it is valid or not
+	obj    *URN   // a pointer to the resulting urn.URN instance
+	str    string // string representation
+	norm   string // norm string representation
+	estr   string // error string
+	isSCIM bool   // whether it is a SCIM URN or not
 }
 
 var urnlexTestCases = []testCase{
@@ -40,6 +42,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:it:stato:legge:2003-09-21;456",
 		"urn:lex:it:stato:legge:2003-09-21;456",
 		"",
+		false,
 	},
 	// Italian decree
 	// fixme(leodido)
@@ -56,6 +59,7 @@ var urnlexTestCases = []testCase{
 	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
 	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
 	// 	"",
+	// 	false,
 	// },
 	// French act
 	{
@@ -69,6 +73,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:fr:etat:lois:2004-12-06;321",
 		"urn:lex:fr:etat:lois:2004-12-06;321",
 		"",
+		false,
 	},
 	// Spanish act
 	{
@@ -82,6 +87,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:es:estado:ley:2002-07-12;123",
 		"urn:lex:es:estado:ley:2002-07-12;123",
 		"",
+		false,
 	},
 	// Glarus Swiss Canton decree
 	{
@@ -95,6 +101,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:ch;glarus:regiere:erlass:2007-10-15;963",
 		"urn:lex:ch;glarus:regiere:erlass:2007-10-15;963",
 		"",
+		false,
 	},
 	// EU Council Directive
 	{
@@ -108,6 +115,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
 		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:lex:eu:council:directive:2010-03-09;2010-19-UE"),
@@ -120,6 +128,7 @@ var urnlexTestCases = []testCase{
 		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
 		"urn:lex:eu:council:directive:2010-03-09;2010-19-UE",
 		"",
+		false,
 	},
 	// US FSC decision
 	{
@@ -133,10 +142,194 @@ var urnlexTestCases = []testCase{
 		"urn:lex:us:federal.supreme.court:decision:1963-03-18;372.us.335",
 		"urn:lex:us:federal.supreme.court:decision:1963-03-18;372.us.335",
 		"",
+		false,
 	},
 }
 
-var genericTestCases = []testCase{
+var scimOnlyTestCases = []testCase{
+	// ok
+	{
+		[]byte("urn:ietf:params:scim:schemas:core:2.0:User"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:core:2.0:User",
+		},
+		"urn:ietf:params:scim:schemas:core:2.0:User",
+		"urn:ietf:params:scim:schemas:core:2.0:User",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:extension:enterprise:2.0:User",
+		},
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:extension:enterprise:2.0:User:userName",
+		},
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:2.0:ListResponse"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "api:messages:2.0:ListResponse",
+		},
+		"urn:ietf:params:scim:api:messages:2.0:ListResponse",
+		"urn:ietf:params:scim:api:messages:2.0:ListResponse",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:core",
+		},
+		"urn:ietf:params:scim:schemas:core",
+		"urn:ietf:params:scim:schemas:core",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:param:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "param:core",
+		},
+		"urn:ietf:params:scim:param:core",
+		"urn:ietf:params:scim:param:core",
+		"",
+		true,
+	},
+
+	// no
+	{
+		[]byte("arn:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 0),
+		false,
+	},
+	{
+		[]byte("usn:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 1),
+		false,
+	},
+	{
+		[]byte("urm:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 2),
+		false,
+	},
+	{
+		[]byte("urno:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 3),
+		false,
+	},
+	{
+		[]byte("urno"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 3),
+		false,
+	},
+	{
+		[]byte("urn:WRONG:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMNamespace, 4),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:WRONG:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMType, 21),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:$"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMName, 29),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core-"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMName, 33),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core:"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMOtherIncomplete, 33),
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core:2.&"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSCIMOther, 36),
+		false,
+	},
+}
+
+var urn2141OnlyTestCases = []testCase{
 	// ok
 	{
 		[]byte("urn:simple:simple"),
@@ -149,6 +342,7 @@ var genericTestCases = []testCase{
 		"urn:simple:simple",
 		"urn:simple:simple",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:%5D"),
@@ -161,6 +355,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:%5D",
 		"urn:ciao:%5d",
 		"",
+		false,
 	},
 
 	// ok - RFC examples
@@ -175,6 +370,7 @@ var genericTestCases = []testCase{
 		"URN:foo:a123,456",
 		"urn:foo:a123,456",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:foo:a123,456"),
@@ -187,6 +383,7 @@ var genericTestCases = []testCase{
 		"urn:foo:a123,456",
 		"urn:foo:a123,456",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:FOO:a123,456"),
@@ -199,6 +396,7 @@ var genericTestCases = []testCase{
 		"urn:FOO:a123,456",
 		"urn:foo:a123,456",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:foo:A123,456"),
@@ -211,6 +409,7 @@ var genericTestCases = []testCase{
 		"urn:foo:A123,456",
 		"urn:foo:A123,456",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:foo:a123%2C456"),
@@ -223,6 +422,7 @@ var genericTestCases = []testCase{
 		"urn:foo:a123%2C456",
 		"urn:foo:a123%2c456",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:FOO:a123%2c456"),
@@ -235,6 +435,7 @@ var genericTestCases = []testCase{
 		"URN:FOO:a123%2c456",
 		"urn:foo:a123%2c456",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:FOO:ABC%FFabc123%2c456"),
@@ -247,6 +448,7 @@ var genericTestCases = []testCase{
 		"URN:FOO:ABC%FFabc123%2c456",
 		"urn:foo:ABC%ffabc123%2c456",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:FOO:ABC%FFabc123%2C456%9A"),
@@ -259,6 +461,7 @@ var genericTestCases = []testCase{
 		"URN:FOO:ABC%FFabc123%2C456%9A",
 		"urn:foo:ABC%ffabc123%2c456%9a",
 		"",
+		false,
 	},
 
 	// ok - SCIM v2
@@ -273,6 +476,7 @@ var genericTestCases = []testCase{
 		"urn:ietf:params:scim:schemas:core:2.0:User",
 		"urn:ietf:params:scim:schemas:core:2.0:User",
 		"",
+		true,
 	},
 	{
 		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"),
@@ -285,6 +489,7 @@ var genericTestCases = []testCase{
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
 		"",
+		true,
 	},
 	{
 		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName"),
@@ -297,6 +502,7 @@ var genericTestCases = []testCase{
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
 		"",
+		true,
 	},
 	{
 		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified"),
@@ -309,6 +515,7 @@ var genericTestCases = []testCase{
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified",
 		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:meta.lastModified",
 		"",
+		true,
 	},
 
 	// ok - minimum urn
@@ -323,6 +530,7 @@ var genericTestCases = []testCase{
 		"urn:a:b",
 		"urn:a:b",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:a::"),
@@ -335,6 +543,7 @@ var genericTestCases = []testCase{
 		"urn:a::",
 		"urn:a::",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:a:-"),
@@ -347,6 +556,7 @@ var genericTestCases = []testCase{
 		"urn:a:-",
 		"urn:a:-",
 		"",
+		false,
 	},
 
 	// ok - URN prefix is case-insensitive
@@ -361,6 +571,7 @@ var genericTestCases = []testCase{
 		"URN:simple:simple",
 		"urn:simple:simple",
 		"",
+		false,
 	},
 	{
 		[]byte("Urn:simple:simple"),
@@ -373,6 +584,7 @@ var genericTestCases = []testCase{
 		"Urn:simple:simple",
 		"urn:simple:simple",
 		"",
+		false,
 	},
 
 	// ok - ID can contain the "urn" string but it can not be exactly equal to it
@@ -387,6 +599,7 @@ var genericTestCases = []testCase{
 		"urn:urna:simple",
 		"urn:urna:simple",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:burnout:nss"),
@@ -399,6 +612,7 @@ var genericTestCases = []testCase{
 		"urn:burnout:nss",
 		"urn:burnout:nss",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:burn:nss"),
@@ -411,6 +625,7 @@ var genericTestCases = []testCase{
 		"urn:burn:nss",
 		"urn:burn:nss",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:urnurnurn:x"),
@@ -423,6 +638,7 @@ var genericTestCases = []testCase{
 		"urn:urnurnurn:x",
 		"urn:urnurnurn:x",
 		"",
+		false,
 	},
 
 	// ok - ID can contains maximum 32 characters
@@ -437,6 +653,7 @@ var genericTestCases = []testCase{
 		"urn:abcdefghilmnopqrstuvzabcdefghilm:x",
 		"urn:abcdefghilmnopqrstuvzabcdefghilm:x",
 		"",
+		false,
 	},
 
 	// ok - ID can be alpha numeric
@@ -451,6 +668,7 @@ var genericTestCases = []testCase{
 		"URN:123:x",
 		"urn:123:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:1ab:x"),
@@ -463,6 +681,7 @@ var genericTestCases = []testCase{
 		"URN:1ab:x",
 		"urn:1ab:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:a1b:x"),
@@ -475,6 +694,7 @@ var genericTestCases = []testCase{
 		"URN:a1b:x",
 		"urn:a1b:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:a12:x"),
@@ -487,6 +707,7 @@ var genericTestCases = []testCase{
 		"URN:a12:x",
 		"urn:a12:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:cd2:x"),
@@ -499,6 +720,7 @@ var genericTestCases = []testCase{
 		"URN:cd2:x",
 		"urn:cd2:x",
 		"",
+		false,
 	},
 
 	// ok - ID can contain an hyphen (not in its first position, see below)
@@ -513,6 +735,7 @@ var genericTestCases = []testCase{
 		"URN:abcd-:x",
 		"urn:abcd-:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:abcd-abcd:x"),
@@ -525,6 +748,7 @@ var genericTestCases = []testCase{
 		"URN:abcd-abcd:x",
 		"urn:abcd-abcd:x",
 		"",
+		false,
 	},
 	{
 		[]byte("URN:a123-456z:x"),
@@ -537,6 +761,7 @@ var genericTestCases = []testCase{
 		"URN:a123-456z:x",
 		"urn:a123-456z:x",
 		"",
+		false,
 	},
 
 	// ok - SS can contain the "urn" string, also be exactly equal to it
@@ -551,6 +776,7 @@ var genericTestCases = []testCase{
 		"urn:urnx:urn",
 		"urn:urnx:urn",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:urnurnurn:urn"),
@@ -563,6 +789,7 @@ var genericTestCases = []testCase{
 		"urn:urnurnurn:urn",
 		"urn:urnurnurn:urn",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:hey:urnurnurn"),
@@ -575,6 +802,7 @@ var genericTestCases = []testCase{
 		"urn:hey:urnurnurn",
 		"urn:hey:urnurnurn",
 		"",
+		false,
 	},
 
 	// ok - SS can contains and discerns multiple colons, also at the end
@@ -589,6 +817,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:a:b:c",
 		"urn:ciao:a:b:c",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:aaa:x:y:"),
@@ -601,6 +830,7 @@ var genericTestCases = []testCase{
 		"urn:aaa:x:y:",
 		"urn:aaa:x:y:",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:aaa:x:y:"),
@@ -613,6 +843,7 @@ var genericTestCases = []testCase{
 		"urn:aaa:x:y:",
 		"urn:aaa:x:y:",
 		"",
+		false,
 	},
 
 	// ok - SS can contain (and also start with) some non-alphabetical (ie., OTHER) characters
@@ -627,6 +858,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:-",
 		"urn:ciao:-",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao::"),
@@ -639,6 +871,7 @@ var genericTestCases = []testCase{
 		"urn:ciao::",
 		"urn:ciao::",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:colon:::::nss"),
@@ -651,6 +884,7 @@ var genericTestCases = []testCase{
 		"urn:colon:::::nss",
 		"urn:colon:::::nss",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:!"),
@@ -663,6 +897,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:!",
 		"urn:ciao:!",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:!!*"),
@@ -675,6 +910,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:!!*",
 		"urn:ciao:!!*",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:-!:-,:x"),
@@ -687,6 +923,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:-!:-,:x",
 		"urn:ciao:-!:-,:x",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:=@"),
@@ -699,6 +936,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:=@",
 		"urn:ciao:=@",
 		"",
+		false,
 	},
 	{
 		[]byte("urn:ciao:@!=%2C(xyz)+a,b.*@g=$_'"),
@@ -711,6 +949,7 @@ var genericTestCases = []testCase{
 		"urn:ciao:@!=%2C(xyz)+a,b.*@g=$_'",
 		"urn:ciao:@!=%2c(xyz)+a,b.*@g=$_'",
 		"",
+		false,
 	},
 
 	// ok - SS can contain (and also start with) hexadecimal representation of octets
@@ -725,6 +964,7 @@ var genericTestCases = []testCase{
 		"URN:hexes:%25",
 		"urn:hexes:%25",
 		"",
+		false,
 	}, // Literal use of the "%" character in a namespace must be encoded using "%25"
 	{
 		[]byte("URN:x:abc%1Dz%2F%3az"),
@@ -737,6 +977,7 @@ var genericTestCases = []testCase{
 		"URN:x:abc%1Dz%2F%3az",
 		"urn:x:abc%1dz%2f%3az",
 		"",
+		false,
 	}, // Literal use of the "%" character in a namespace must be encoded using "%25"
 
 	// no - ID can not start with an hyphen
@@ -746,7 +987,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("URN:---xxx:x"),
@@ -754,7 +996,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 
 	// no - ID can not start with a colon
@@ -764,7 +1007,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("urn::::nss"),
@@ -772,7 +1016,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 
 	// no - ID can not contains more than 32 characters
@@ -782,7 +1027,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 36]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 36]`,
+		false,
 	},
 
 	// no - ID can not contain special characters
@@ -792,7 +1038,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 5]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 5]`,
+		false,
 	},
 	{
 		[]byte("URN:@,:x"),
@@ -800,7 +1047,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("URN:#,:x"),
@@ -808,7 +1056,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("URN:bc'.@:x"),
@@ -816,7 +1065,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 6]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 6]`,
+		false,
 	},
 
 	// no - ID can not be equal to "urn"
@@ -827,6 +1077,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
 	},
 	{
 		[]byte("urn:URN:NSS"),
@@ -835,6 +1086,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
 	},
 	{
 		[]byte("URN:URN:NSS"),
@@ -843,6 +1095,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
 	},
 	{
 		[]byte("urn:UrN:NSS"),
@@ -851,6 +1104,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
 	},
 	{
 		[]byte("urn:Urn:NSS"),
@@ -859,6 +1113,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
 	},
 
 	// no - ID can not contain spaces
@@ -868,7 +1123,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 9]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 9]`,
+		false,
 	},
 
 	// no - SS can not contain spaces
@@ -879,6 +1135,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 13]`,
+		false,
 	},
 
 	// no - SS can not contain reserved characters (can accept them only if %-escaped)
@@ -889,6 +1146,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string hex chars to be well-formed (%alnum{2}) [col 7]`,
+		false,
 	},
 	{
 		[]byte("urn:a:?"),
@@ -897,6 +1155,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
+		false,
 	},
 	{
 		[]byte("urn:a:#"),
@@ -905,6 +1164,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
+		false,
 	},
 	{
 		[]byte("urn:a:/"),
@@ -913,6 +1173,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
+		false,
 	},
 
 	// no - Incomplete URNs
@@ -922,7 +1183,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("urn::"),
@@ -930,7 +1192,8 @@ var genericTestCases = []testCase{
 		nil,
 		"",
 		"",
-		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its start) [col 4]`,
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 4]`,
+		false,
 	},
 	{
 		[]byte("urn:a:"),
@@ -939,6 +1202,7 @@ var genericTestCases = []testCase{
 		"",
 		"",
 		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 6]`,
+		false,
 	},
 	// {
 	// 	"urn:a",
@@ -1004,5 +1268,257 @@ var equivalenceTests = []struct {
 		false,
 		[]byte("urn:foo:A123,456"),
 		[]byte("urn:FOO:a123,456"),
+	},
+}
+
+var fallbackTestCases = []testCase{
+	// ok SCIM
+	{
+		[]byte("urn:ietf:params:scim:schemas:core:2.0:User"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:core:2.0:User",
+		},
+		"urn:ietf:params:scim:schemas:core:2.0:User",
+		"urn:ietf:params:scim:schemas:core:2.0:User",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:extension:enterprise:2.0:User",
+		},
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:extension:enterprise:2.0:User:userName",
+		},
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
+		"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:userName",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:messages:3.0:Get"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "api:messages:3.0:Get",
+		},
+		"urn:ietf:params:scim:api:messages:3.0:Get",
+		"urn:ietf:params:scim:api:messages:3.0:Get",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "schemas:core",
+		},
+		"urn:ietf:params:scim:schemas:core",
+		"urn:ietf:params:scim:schemas:core",
+		"",
+		true,
+	},
+	{
+		[]byte("urn:ietf:params:scim:param:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf:params:scim",
+			SS:     "param:core",
+		},
+		"urn:ietf:params:scim:param:core",
+		"urn:ietf:params:scim:param:core",
+		"",
+		true,
+	},
+	// no SCIM, ok URN
+	{
+		[]byte("urn:simple:ciao"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "simple",
+			SS:     "ciao",
+		},
+		"urn:simple:ciao",
+		"urn:simple:ciao",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:WRONG4SCIM:schemas:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "WRONG4SCIM",
+			SS:     "schemas:core",
+		},
+		"urn:WRONG4SCIM:schemas:core",
+		"urn:wrong4scim:schemas:core",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:ERR:core"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf",
+			SS:     "params:scim:ERR:core",
+		},
+		"urn:ietf:params:scim:ERR:core",
+		"urn:ietf:params:scim:ERR:core",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:$"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf",
+			SS:     "params:scim:schemas:$",
+		},
+		"urn:ietf:params:scim:schemas:$",
+		"urn:ietf:params:scim:schemas:$",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core-"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf",
+			SS:     "params:scim:schemas:core-",
+		},
+		"urn:ietf:params:scim:schemas:core-",
+		"urn:ietf:params:scim:schemas:core-",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:api:core:"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "ietf",
+			SS:     "params:scim:api:core:",
+		},
+		"urn:ietf:params:scim:api:core:",
+		"urn:ietf:params:scim:api:core:",
+		"",
+		false,
+	},
+	// no SCIM, no URN
+	{
+		[]byte("arn:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 0),
+		false,
+	},
+	{
+		[]byte("usn:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 1),
+		false,
+	},
+	{
+		[]byte("urm:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 2),
+		false,
+	},
+	{
+		[]byte("urno:ietf:params:scim:schemas:core"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 3),
+		false,
+	},
+	{
+		[]byte("urno"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errPrefix, 3),
+		false,
+	},
+	{
+		[]byte("URN:a!?:x"),
+		false,
+		nil,
+		"",
+		"",
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 5]`,
+		false,
+	},
+	{
+		[]byte("urn:Urn:NSS"),
+		false,
+		nil,
+		"",
+		"",
+		`expecting the identifier to not contain the "urn" reserved string [col 7]`,
+		false,
+	},
+	{
+		[]byte("urn:spazio bianco:NSS"),
+		false,
+		nil,
+		"",
+		"",
+		`expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col 10]`,
+		false,
+	},
+	{
+		[]byte("urn:conca:z ws"),
+		false,
+		nil,
+		"",
+		"",
+		`expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col 11]`,
+		false,
+	},
+	{
+		[]byte("urn:ietf:params:scim:schemas:core:2.&"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(errSpecificString, 36),
+		false,
 	},
 }
