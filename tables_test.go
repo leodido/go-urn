@@ -46,7 +46,7 @@ var urnlexTestCases = []testCase{
 	},
 	// Italian decree
 	// fixme(leodido)
-	// verify whether it is correct or not that ~ is not accepted
+	// verify whether it is correct or not that ~ is not accepted: yes it is not allowed in rfc2141 (it is allowed in rfc8141 instead)
 	// does it requires RFC 8141 (issue #17) ?
 	// {
 	// 	[]byte("urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5"),
@@ -1345,6 +1345,11 @@ var equivalenceTests = []struct {
 	},
 	{
 		true,
+		[]byte("urn:example:a123%2Cz456"),
+		[]byte("URN:EXAMPLE:a123%2cz456"),
+	},
+	{
+		true,
 		[]byte("urn:foo:AbC123%2C456"),
 		[]byte("URN:FOO:AbC123%2c456"),
 	},
@@ -1387,6 +1392,16 @@ var equivalenceTests = []struct {
 		false,
 		[]byte("urn:foo:A123,456"),
 		[]byte("urn:FOO:a123,456"),
+	},
+	{
+		false,
+		[]byte("urn:example:a123%2Cz456"),
+		[]byte("urn:example:a123,z456"),
+	},
+	{
+		false,
+		[]byte("urn:example:A123,z456"),
+		[]byte("urn:example:a123,Z456"),
 	},
 }
 
