@@ -31,6 +31,7 @@ action mark {
 }
 
 action tolower {
+    // List of positions in the buffer to later lowercase
     m.tolower = append(m.tolower, m.p - m.pb)
 }
 
@@ -39,13 +40,15 @@ action set_pre {
 }
 
 action throw_pre_urn_err {
-    // Throw an error when:
-    // - we are entering here matching the the prefix in the namespace identifier part
-    // - looking ahead (3 chars) we find a colon
-    if pos := m.p + 3; pos < m.pe && m.data[pos] == 58 && output.prefix != "" {
-        m.err = fmt.Errorf(errNoUrnWithinID, pos)
-        fhold;
-        fgoto fail;
+    if m.parsingMode != RFC8141Only {
+        // Throw an error when:
+        // - we are entering here matching the the prefix in the namespace identifier part
+        // - looking ahead (3 chars) we find a colon
+        if pos := m.p + 3; pos < m.pe && m.data[pos] == 58 && output.prefix != "" {
+            m.err = fmt.Errorf(errNoUrnWithinID, pos)
+            fhold;
+            fgoto fail;
+        }
     }
 }
 
@@ -54,13 +57,12 @@ action set_nid {
 }
 
 action set_nss {
-    raw := m.text()
-    output.SS = string(raw)
+    output.SS = string(m.text())
     // Iterate upper letters lowering them
     for _, i := range m.tolower {
-        raw[i] = raw[i] + 32
+        m.data[m.pb+i] = m.data[m.pb+i] + 32
     }
-    output.norm = string(raw)
+    output.norm = string(m.text())
 }
 
 action err_pre {
@@ -198,7 +200,7 @@ action set_scim_other {
     output.scim.Other = string(m.data[output.scim.pos:m.p])
 }
 
-pre = ([uU] @err(err_pre) [rR] @err(err_pre) [nN] @err(err_pre)) >mark >throw_pre_urn_err %set_pre ;
+pre = ([uU] @err(err_pre) [rR] @err(err_pre) [nN] @err(err_pre)) >mark >throw_pre_urn_err %set_pre;
 
 nid = (alnum >mark (alnum | '-'){0,31}) $err(err_nid) %set_nid;
 
@@ -229,6 +231,67 @@ scim := (scim_nid ':' scim_type ':' scim_name scim_other? %set_nss) %eof(scim_ty
 scim_only := pre ':' $err(err_pre) @{ fgoto scim; };
 
 ### SCIM END
+
+### 8141 BEG
+
+action err_nss_8141 {
+    fmt.Println("err_nss_8141")
+    fhold;
+    fgoto fail;
+}
+
+action err_nid_8141 {
+    fmt.Println("err_nid_8141")
+    fhold;
+    fgoto fail;
+}
+
+action rfc8141_type {
+    output.kind = RFC8141;
+}
+
+action set_r_component {
+    fmt.Println("set_r_component", m.pb, m.p)
+    output.rComponent = string(m.text())
+}
+
+action set_q_component {
+    fmt.Println("set_q_component", m.pb, m.p)
+    output.qComponent = string(m.text())
+}
+
+action set_f_component {
+    fmt.Println("set_f_component", m.pb, m.p)
+    output.fComponent = string(m.text())
+}
+
+pchar = (sss | '~' | '&' | hex);
+
+component = pchar (pchar | '/' | '?')*;
+
+disallowed = '?' [+=];
+
+r_component = '?+' (component - disallowed) >mark %set_r_component;
+
+q_component ='?=' (component - disallowed) >mark %set_q_component;
+
+rq_components = (r_component :>> q_component? | q_component);
+
+fragment = (pchar | '/' | '?')*;
+
+f_component = '#' (fragment - disallowed) >mark %set_f_component;
+
+nss_rfc8141 = (pchar >mark (pchar | '/')*) $err(err_nss_8141) %set_nss;
+
+nid_rfc8141 = (alnum >mark (alnum | '-'){0,30} alnum) $err(err_nid_8141) %set_nid;
+
+rfc8141 := nid_rfc8141 ':' nss_rfc8141 rq_components? f_component? %eof(rfc8141_type);
+
+rfc8141_only := pre ':' $err(err_pre) @{ fgoto rfc8141; };
+
+### 8141 END
+
+# TODO: remove fallback mode?
 
 fail := (any - [\n\r])* @err{ fgoto main; };
 
@@ -303,17 +366,17 @@ func (m *machine) Parse(input []byte) (*URN, error) {
     switch m.parsingMode {
         case RFC2141Only:
             m.cs = en_urn_only
-            break
 
         case RFC7643Only:
             m.cs = en_scim_only
-            break
+
+        case RFC8141Only:
+            m.cs = en_rfc8141_only
 
         case All:
             fallthrough
         default:
             %% write init;
-            break
     }
     %% write exec;
 
