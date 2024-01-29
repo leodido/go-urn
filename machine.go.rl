@@ -11,8 +11,7 @@ var (
     errIdentifier          = "expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col %d]"
     errSpecificString      = "expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col %d]"
     errNoUrnWithinID       = "expecting the identifier to not contain the \"urn\" reserved string [col %d]"
-    errHex                 = "expecting the specific string hex chars to be well-formed (%%alnum{2}) [col %d]"
-    errParse               = "parsing error [col %d]"
+    errHex                 = "expecting the percent encoded chars to be well-formed (%%alnum{2}) [col %d]"
     errSCIMNamespace       = "expecing the SCIM namespace identifier (ietf:params:scim) [col %d]"
     errSCIMType            = "expecting a correct SCIM type (schemas, api, param) [col %d]"
     errSCIMName            = "expecting one or more alnum char in the SCIM name part [col %d]"
@@ -39,7 +38,7 @@ action mark {
 
 action tolower {
     // List of positions in the buffer to later lowercase
-    m.tolower = append(m.tolower, m.p - m.pb)
+    output.tolower = append(output.tolower, m.p - m.pb)
 }
 
 action set_pre {
@@ -66,10 +65,14 @@ action set_nid {
 action set_nss {
     output.SS = string(m.text())
     // Iterate upper letters lowering them
-    for _, i := range m.tolower {
+    for _, i := range output.tolower {
         m.data[m.pb+i] = m.data[m.pb+i] + 32
     }
     output.norm = string(m.text())
+    // Revert the buffer to the original
+    for _, i := range output.tolower {
+        m.data[m.pb+i] = m.data[m.pb+i] - 32
+    }
 }
 
 action err_pre {
@@ -97,18 +100,11 @@ action err_urn {
 }
 
 action err_hex {
-    if m.parsingMode == RFC2141Only || m.parsingMode == All {
+    if m.parsingMode == RFC2141Only || m.parsingMode == RFC8141Only {
         m.err = fmt.Errorf(errHex, m.p)
         fhold;
         fgoto fail;
     }
-    // Otherwise, we expect the machine to fallback to SCIM errors
-}
-
-action err_parse {
-    m.err = fmt.Errorf(errParse, m.p)
-    fhold;
-    fgoto fail;
 }
 
 action base_type {
@@ -127,67 +123,29 @@ nss = (sss | hex)+ $err(err_nss);
 
 nid_not_urn = (nid - pre %err(err_urn));
 
-urn := (nid_not_urn ':' nss >mark %set_nss) $err(err_parse) %eof(base_type);
-
-urn_only := pre ':' $err(err_pre) @{ fgoto urn; };
+urn = pre ':' @err(err_pre) (nid_not_urn ':' nss >mark %set_nss) %eof(base_type);
 
 ### SCIM BEG
 
 action err_scim_nid {
-    // In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
-    if m.parsingMode == All {
-        // TODO: store why the machine fallback to the RFC2141 one?
-        output.scim = nil;
-        // Rewind the cursor after the prefix ends ("urn:")
-        fexec 4;
-        // Go to the "urn" machine from this point on
-        fgoto urn;
-    }
     m.err = fmt.Errorf(errSCIMNamespace, m.p)
     fhold;
     fgoto fail;
 }
 
 action err_scim_type {
-    // In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
-    if m.parsingMode == All {
-        // TODO: store why the machine fallback to the RFC2141 one?
-        output.scim = nil;
-        // Rewind the cursor after the prefix ends ("urn:")
-        fexec 4;
-        // Go to the "urn" machine from this point on
-        fgoto urn;
-    }
     m.err = fmt.Errorf(errSCIMType, m.p)
     fhold;
     fgoto fail;
 }
 
 action err_scim_name {
-    // In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
-    if m.parsingMode == All {
-        // TODO: store why the machine fallback to the RFC2141 one?
-        output.scim = nil;
-        // Rewind the cursor after the prefix ends ("urn:")
-        fexec 4;
-        // Go to the "urn" machine from this point on
-        fgoto urn;
-    }
     m.err = fmt.Errorf(errSCIMName, m.p)
     fhold;
     fgoto fail;
 }
 
 action err_scim_other {
-    // In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
-    if m.parsingMode == All {
-        // TODO: store why the machine fallback to the RFC2141 one?
-        output.scim = nil;
-        // Rewind the cursor after the prefix ends ("urn:")
-        fexec 4;
-        // Go to the "urn" machine from this point on
-        fgoto urn;
-    }
     if m.p == m.pe {
         m.err = fmt.Errorf(errSCIMOtherIncomplete, m.p-1)
     } else {
@@ -233,9 +191,7 @@ scim_name = (alnum)+ >mark_scim_name %set_scim_name $err(err_scim_name);
 
 scim_type = ('schemas' | 'api' | 'param') >mark %set_scim_type $err(err_scim_type);
 
-scim := (scim_nid ':' scim_type ':' scim_name scim_other? %set_nss) %eof(scim_type);
-
-scim_only := pre ':' $err(err_pre) @{ fgoto scim; };
+scim_only := pre ':' @err(err_pre) (scim_nid ':' scim_type ':' scim_name scim_other? %set_nss) %eof(scim_type);
 
 ### SCIM END
 
@@ -331,17 +287,13 @@ informal_id = pre ('-' [a-zA-z0] %to(informal_nid_match));
 
 nid_rfc8141_not_urn = (nid_rfc8141 - informal_id?);
 
-rfc8141 := nid_rfc8141_not_urn ':' nss_rfc8141 rq_components? f_component? %eof(rfc8141_type);
-
-rfc8141_only := pre ':' $err(err_pre) @{ fgoto rfc8141; };
+rfc8141_only := pre ':' @err(err_pre) nid_rfc8141_not_urn ':' nss_rfc8141 rq_components? f_component? %eof(rfc8141_type);
 
 ### 8141 END
 
-# TODO: remove fallback mode?
-
 fail := (any - [\n\r])* @err{ fgoto main; };
 
-main := (pre ':' $err(err_pre) @{ fgoto scim; }) $err(err_parse);
+main := urn;
 
 }%%
 
@@ -359,7 +311,7 @@ type machine struct {
     cs                int
     p, pe, eof, pb    int
     err               error
-    tolower           []int
+    startParsingAt    int
     parsingMode       ParsingMode
     parsingModeSet    bool
 }
@@ -406,24 +358,11 @@ func (m *machine) Parse(input []byte) (*URN, error) {
     m.pe = len(input)
     m.eof = len(input)
     m.err = nil
-    m.tolower = []int{}
-    output := &URN{}
-
-    switch m.parsingMode {
-        case RFC2141Only:
-            m.cs = en_urn_only
-
-        case RFC7643Only:
-            m.cs = en_scim_only
-
-        case RFC8141Only:
-            m.cs = en_rfc8141_only
-
-        case All:
-            fallthrough
-        default:
-            %% write init;
+    m.cs = m.startParsingAt
+    output := &URN{
+        tolower: []int{},
     }
+
     %% write exec;
 
     if m.cs < first_final || m.cs == en_fail {
@@ -435,5 +374,13 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 func (m *machine) WithParsingMode(x ParsingMode) {
     m.parsingMode = x
+    switch m.parsingMode {
+        case RFC2141Only:
+            m.startParsingAt = en_main
+        case RFC8141Only:
+            m.startParsingAt = en_rfc8141_only
+        case RFC7643Only:
+            m.startParsingAt = en_scim_only
+    }
     m.parsingModeSet = true
 }
