@@ -44,23 +44,6 @@ var urnlexTestCases = []testCase{
 		"",
 		false,
 	},
-	// Italian decree
-	// fixme(leodido)
-	// verify whether it is correct or not that ~ is not accepted: yes it is not allowed in rfc2141 (it is allowed in rfc8141 instead)
-	// does it requires RFC 8141 (issue #17) ?
-	// {
-	// 	[]byte("urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5"),
-	// 	true,
-	// 	&URN{
-	// 		prefix: "urn",
-	// 		ID:     "lex",
-	// 		SS:     "it:ministero.giustizia:decreto:1992-07-24;358~art5",
-	// 	},
-	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
-	// 	"it:ministero.giustizia:decreto:1992-07-24;358~art5",
-	// 	"",
-	// 	false,
-	// },
 	// French act
 	{
 		[]byte("urn:lex:fr:etat:lois:2004-12-06;321"),
@@ -1333,78 +1316,6 @@ var urn2141OnlyTestCases = []testCase{
 	},
 }
 
-var equivalenceTests = []struct {
-	eq bool
-	lx []byte
-	rx []byte
-}{
-	{
-		true,
-		[]byte("urn:foo:a123%2C456"),
-		[]byte("URN:FOO:a123%2c456"),
-	},
-	{
-		true,
-		[]byte("urn:example:a123%2Cz456"),
-		[]byte("URN:EXAMPLE:a123%2cz456"),
-	},
-	{
-		true,
-		[]byte("urn:foo:AbC123%2C456"),
-		[]byte("URN:FOO:AbC123%2c456"),
-	},
-	{
-		true,
-		[]byte("urn:foo:AbC123%2C456%1f"),
-		[]byte("URN:FOO:AbC123%2c456%1f"),
-	},
-	{
-		true,
-		[]byte("URN:foo:a123,456"),
-		[]byte("urn:foo:a123,456"),
-	},
-	{
-		true,
-		[]byte("URN:foo:a123,456"),
-		[]byte("urn:FOO:a123,456"),
-	},
-	{
-		true,
-		[]byte("urn:foo:a123,456"),
-		[]byte("urn:FOO:a123,456"),
-	},
-	{
-		true,
-		[]byte("urn:ciao:%2E"),
-		[]byte("urn:ciao:%2e"),
-	},
-	{
-		false,
-		[]byte("urn:foo:A123,456"),
-		[]byte("URN:foo:a123,456"),
-	},
-	{
-		false,
-		[]byte("urn:foo:A123,456"),
-		[]byte("urn:foo:a123,456"),
-	},
-	{
-		false,
-		[]byte("urn:foo:A123,456"),
-		[]byte("urn:FOO:a123,456"),
-	},
-	{
-		false,
-		[]byte("urn:example:a123%2Cz456"),
-		[]byte("urn:example:a123,z456"),
-	},
-	{
-		false,
-		[]byte("urn:example:A123,z456"),
-		[]byte("urn:example:a123,Z456"),
-	},
-}
-
 var fallbackTestCases = []testCase{
 	// ok SCIM
 	{
@@ -1655,4 +1566,728 @@ var fallbackTestCases = []testCase{
 		fmt.Sprintf(errSpecificString, 36),
 		false,
 	},
+}
+
+var rfc8141TestCases = []testCase{
+	// ok
+	{
+		[]byte("urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5"), // Italian decree
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "lex",
+			SS:     "it:ministero.giustizia:decreto:1992-07-24;358~art5",
+		},
+		"urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5",
+		"urn:lex:it:ministero.giustizia:decreto:1992-07-24;358~art5",
+		"",
+		false,
+	}, // ~ allowed in the NSS
+	{
+		[]byte("urn:nid:nss/"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "nid",
+			SS:     "nss/",
+		},
+		"urn:nid:nss/",
+		"urn:nid:nss/",
+		"",
+		false,
+	}, // / allowed in the NSS
+	{
+		[]byte("urn:nid:nss&"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "nid",
+			SS:     "nss&",
+		},
+		"urn:nid:nss&",
+		"urn:nid:nss&",
+		"",
+		false,
+	}, // & allowed in the NSS
+	{
+		[]byte("urn:example:1/406/47452/2"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "example",
+			SS:     "1/406/47452/2",
+		},
+		"urn:example:1/406/47452/2",
+		"urn:example:1/406/47452/2",
+		"",
+		false,
+	}, // & allowed in the NSS
+	{
+		[]byte("urn:example:foo-bar-baz-qux?+CCResolve:cc=uk"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			rComponent: "CCResolve:cc=uk",
+		},
+		"urn:example:foo-bar-baz-qux?+CCResolve:cc=uk",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux?+&"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			rComponent: "&",
+		},
+		"urn:example:foo-bar-baz-qux?+&",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux?+~"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			rComponent: "~",
+		},
+		"urn:example:foo-bar-baz-qux?+~",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux?+%16CCResolve:cc=uk"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			rComponent: "%16CCResolve:cc=uk",
+		},
+		"urn:example:foo-bar-baz-qux?+%16CCResolve:cc=uk",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qut?+~&%FF()+,-.:=@;$_!/?Alnum123456"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qut",
+			rComponent: "~&%FF()+,-.:=@;$_!/?Alnum123456",
+		},
+		"urn:example:foo-bar-baz-qut?+~&%FF()+,-.:=@;$_!/?Alnum123456",
+		"urn:example:foo-bar-baz-qut",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "weather",
+			qComponent: "op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
+		},
+		"urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
+		"urn:example:weather",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:esempio:climate?=alnum~&%FF()+,-.:=@;$_!/?123456"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "esempio",
+			SS:         "climate",
+			qComponent: "alnum~&%FF()+,-.:=@;$_!/?123456",
+		},
+		"urn:esempio:climate?=alnum~&%FF()+,-.:=@;$_!/?123456",
+		"urn:esempio:climate",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:esempio:climate?=&&"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "esempio",
+			SS:         "climate",
+			qComponent: "&&",
+		},
+		"urn:esempio:climate?=&&",
+		"urn:esempio:climate",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:esempio:climate?=%A1alnum~&%FF()+,-.:=@;$_!/?123456"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "esempio",
+			SS:         "climate",
+			qComponent: "%A1alnum~&%FF()+,-.:=@;$_!/?123456",
+		},
+		"urn:esempio:climate?=%A1alnum~&%FF()+,-.:=@;$_!/?123456",
+		"urn:esempio:climate",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux#somepart"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			fComponent: "somepart",
+		},
+		"urn:example:foo-bar-baz-qux#somepart",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux#~&"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			fComponent: "~&",
+		},
+		"urn:example:foo-bar-baz-qux#~&",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux#alnum~&%FF()+,-.:=@;$_!/?123456"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			fComponent: "alnum~&%FF()+,-.:=@;$_!/?123456",
+		},
+		"urn:example:foo-bar-baz-qux#alnum~&%FF()+,-.:=@;$_!/?123456",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:foo-bar-baz-qux#%D0alnum~&%FF()+,-.:=@;$_!/?123456"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "foo-bar-baz-qux",
+			fComponent: "%D0alnum~&%FF()+,-.:=@;$_!/?123456",
+		},
+		"urn:example:foo-bar-baz-qux#%D0alnum~&%FF()+,-.:=@;$_!/?123456",
+		"urn:example:foo-bar-baz-qux",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:CamelCase1/406/47452/2?+Cc=it&prefix=39?=lat=41.22255&long=16.06596#frag"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "CamelCase1/406/47452/2",
+			rComponent: "Cc=it&prefix=39",
+			qComponent: "lat=41.22255&long=16.06596",
+			fComponent: "frag",
+		},
+		"urn:example:CamelCase1/406/47452/2?+Cc=it&prefix=39?=lat=41.22255&long=16.06596#frag",
+		"urn:example:CamelCase1/406/47452/2",
+		"",
+		false,
+	}, // r_component, q_component, f_component
+	{
+		[]byte("urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "CamelCase1/406/47452/2",
+			qComponent: "lat=41.22255&long=16.06596",
+			fComponent: "frag",
+		},
+		"urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag",
+		"urn:example:CamelCase1/406/47452/2",
+		"",
+		false,
+	}, // q_component, f_component
+	{
+		[]byte("urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag?some/slash/~%D0"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "CamelCase1/406/47452/2",
+			qComponent: "lat=41.22255&long=16.06596",
+			fComponent: "frag?some/slash/~%D0",
+		},
+		"urn:example:CamelCase1/406/47452/2?=lat=41.22255&long=16.06596#frag?some/slash/~%D0",
+		"urn:example:CamelCase1/406/47452/2",
+		"",
+		false,
+	}, // q_component, f_component
+	{
+		[]byte("urn:example:CamelCase1/406/47452/2?+Cc=it&prefix=39?=lat=41.22255&long=16.06596"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "example",
+			SS:         "CamelCase1/406/47452/2",
+			rComponent: "Cc=it&prefix=39",
+			qComponent: "lat=41.22255&long=16.06596",
+		},
+		"urn:example:CamelCase1/406/47452/2?+Cc=it&prefix=39?=lat=41.22255&long=16.06596",
+		"urn:example:CamelCase1/406/47452/2",
+		"",
+		false,
+	}, // r_component, q_component
+	{
+		[]byte("urn:TESTt3st:&/987/QWERTYUIOP/0#"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "TESTt3st",
+			SS:         "&/987/QWERTYUIOP/0",
+			fComponent: "",
+		},
+		"urn:TESTt3st:&/987/QWERTYUIOP/0",
+		"urn:testt3st:&/987/QWERTYUIOP/0",
+		"",
+		false,
+	}, // empty fragment
+	{
+		[]byte("urn:example:%D0%B0123,z456"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "example",
+			SS:     "%D0%B0123,z456",
+		},
+		"urn:example:%D0%B0123,z456",
+		"urn:example:%d0%b0123,z456",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:example:apple:pear:plum:cherry"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "example",
+			SS:     "apple:pear:plum:cherry",
+		},
+		"urn:example:apple:pear:plum:cherry",
+		"urn:example:apple:pear:plum:cherry",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:z------------------------------a:q"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "z------------------------------a",
+			SS:     "q",
+		},
+		"urn:z------------------------------a:q",
+		"urn:z------------------------------a:q",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:10:2"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "10",
+			SS:     "2",
+		},
+		"urn:10:2",
+		"urn:10:2",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:a1l2n3m4-56789aeiou:2"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "a1l2n3m4-56789aeiou",
+			SS:     "2",
+		},
+		"urn:a1l2n3m4-56789aeiou:2",
+		"urn:a1l2n3m4-56789aeiou:2",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:a1l2n3m4-56789aeiou:2%D0%B0"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "a1l2n3m4-56789aeiou",
+			SS:     "2%D0%B0",
+		},
+		"urn:a1l2n3m4-56789aeiou:2%D0%B0",
+		"urn:a1l2n3m4-56789aeiou:2%d0%b0",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:amp:&"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "amp",
+			SS:     "&",
+		},
+		"urn:amp:&",
+		"urn:amp:&",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:tilde:~~~"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "tilde",
+			SS:     "~~~",
+		},
+		"urn:tilde:~~~",
+		"urn:tilde:~~~",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:signs:()+,-.:=@;$_!*alnum123456789"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "signs",
+			SS:     "()+,-.:=@;$_!*alnum123456789",
+		},
+		"urn:signs:()+,-.:=@;$_!*alnum123456789",
+		"urn:signs:()+,-.:=@;$_!*alnum123456789",
+		"",
+		false,
+	},
+	{
+		[]byte("URN:signs:()+,-.:=@;$_!*alnum123456789"),
+		true,
+		&URN{
+			prefix: "URN",
+			ID:     "signs",
+			SS:     "()+,-.:=@;$_!*alnum123456789",
+		},
+		"URN:signs:()+,-.:=@;$_!*alnum123456789",
+		"urn:signs:()+,-.:=@;$_!*alnum123456789",
+		"",
+		false,
+	},
+	{
+		[]byte("urn:urn-7:informal"),
+		true,
+		&URN{
+			prefix: "urn",
+			ID:     "urn-7",
+			SS:     "informal",
+		},
+		"urn:urn-7:informal",
+		"urn:urn-7:informal",
+		"",
+		false,
+	}, // NID containing informal URN namespace
+	{
+		[]byte("urn:ex:ex?+a?"),
+		true,
+		&URN{
+			prefix:     "urn",
+			ID:         "ex",
+			SS:         "ex",
+			rComponent: "a?",
+		},
+		"urn:ex:ex?+a?",
+		"urn:ex:ex",
+		"",
+		false,
+	}, // r_component containing ? not immediately followed by + or =
+
+	// no
+	{
+		[]byte("urn:urn-0:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141InformalID, 7),
+		false,
+	}, // NID must not start the a wrong informal URN namespace
+	{
+		[]byte("urn:urn-s:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141InformalID, 7),
+		false,
+	}, // NID must not start the "urn-" prefix followed by a string
+	{
+		[]byte("urn:example:а123,z456"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141SpecificString, 12),
+		false,
+	}, // CYRILLIC а (U+0430)
+	{
+		[]byte("URN:-leading:w"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 4),
+		false,
+	}, // leading - not allowed in the NID
+	{
+		[]byte("URN:trailing-:w"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 13),
+		false,
+	}, // trailing - not allowed in the NID
+	{
+		[]byte("urn:a:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 5),
+		false,
+	}, // NID at least 2 characters
+	{
+		[]byte("urn:1:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 5),
+		false,
+	}, // NID at least 2 characters
+	{
+		[]byte("urn:yz-:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 7),
+		false,
+	}, // NID must not start with 2 characters followerd by a dash
+	{
+		[]byte("urn:9x-:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 7),
+		false,
+	}, // NID must not start with 2 characters followerd by a dash
+	{
+		[]byte("urn:X-:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 6),
+		false,
+	}, // NID must not start with experimental URN namespace of RFC3406
+	{
+		[]byte("urn:xn--:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 8),
+		false,
+	}, // NID must not start with "xn" followed by 2 dashes
+	{
+		[]byte("urn:ss--:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 8),
+		false,
+	}, // NID must not start with 2 chars followed by 2 dashes
+	{
+		[]byte("urn:1E--:nss"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 8),
+		false,
+	}, // NID must not start with 2 chars followed by 2 dashes
+	{
+		[]byte("urn:ex:ex?+a?+"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141RComponentStart, 14),
+		false,
+	}, // r_component containing ?+
+	{
+		[]byte("urn:ex:ex?+"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedRComp, 11),
+		false,
+	}, // empty r_component
+	{
+		[]byte("urn:ex:ex?=a?="),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141QComponentStart, 14),
+		false,
+	}, // q_component containing ?=
+	{
+		[]byte("urn:example:CamelCase1/406/47452/2?="),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedQComp, 36),
+		false,
+	}, // empty q_component
+	{
+		[]byte("urn:ex:ex?+rcomponent?+rcomponent?=qcomponent"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141RComponentStart, 23),
+		false,
+	}, // r_component containing ?+ followed by q_component
+	{
+		[]byte("urn:ex:ex?+rcomponent?+rcomponent?="),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141RComponentStart, 23),
+		false,
+	}, // r_component containing ?+ followed by empty q_component
+	{
+		[]byte("urn:ex:ex?+rcomponent?=qcomponent?=q"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141QComponentStart, 35),
+		false,
+	}, // r_component followed by q_component containing ?+
+	{
+		[]byte("urn:ex:ex?+?=q"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedRComp, 12),
+		false,
+	}, // empty r_component followed by q_component
+	{
+		[]byte("urn:ex:ex?+/"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedRComp, 11),
+		false,
+	}, // r_component starting with /
+	{
+		[]byte("urn:ex:ex?+?"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedRComp, 12),
+		false,
+	}, // r_component starting with /
+	{
+		[]byte("urn:ex:ex?=/"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedQComp, 11),
+		false,
+	}, // q_component starting with /
+	{
+		[]byte("urn:ex:ex?=?"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141MalformedQComp, 12),
+		false,
+	}, // q_component starting with /
+	{
+		[]byte("urn:mm:/"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141SpecificString, 7),
+		false,
+	}, // / not in first position in the NSS part
+	{
+		[]byte("urn:mm:?"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141SpecificString, 7),
+		false,
+	}, // ? not in first position in the NSS part
+	{
+		[]byte("urn:123456789-1234567890-abcdefghilmn:o"),
+		false,
+		nil,
+		"",
+		"",
+		fmt.Sprintf(err8141Identifier, 36),
+		false,
+	}, // too long NID
 }
