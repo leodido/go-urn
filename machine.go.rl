@@ -22,6 +22,10 @@ var (
     err8141InformalID = "informal URN namespace must be in the form urn-[1-9][0-9] [col %d]"
     err8141SpecificString = "expecting the specific string to contain alnum, hex, or others ([~&()+,-.:=@;$_!*'] or '/' not in first position) chars [col %d]"
     err8141Identifier = "expecting the indentifier to be a string with (length 2 to 32 chars) containing alnum (or dashes) not starting or ending with a dash [col %d]"
+    err8141RComponentStart = "expecting only one r-component (starting with the ?+ sequence) [col %d]"
+    err8141QComponentStart = "expecting only one q-component (starting with the ?= sequence) [col %d]"
+    err8141MalformedRComponent = "expecting a non-empty r-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'/?]) [col %d]"
+    err8141MalformedQComponent = "expecting a non-empty q-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'/?]) [col %d]"
 )
 
 %%{
@@ -272,17 +276,51 @@ action informal_nid_match {
     fgoto fail;
 }
 
+action mark_r_start {
+    if output.rStart {
+        m.err = fmt.Errorf(err8141RComponentStart, m.p)
+        fhold;
+        fgoto fail;
+    }
+    output.rStart = true
+}
+
+action mark_q_start {
+    if output.qStart {
+        m.err = fmt.Errorf(err8141QComponentStart, m.p)
+        fhold;
+        fgoto fail;
+    }
+    output.qStart = true
+}
+
+action err_malformed_r_component {
+    m.err = fmt.Errorf(err8141MalformedRComponent, m.p)
+    fhold;
+    fgoto fail;
+}
+
+action err_malformed_q_component {
+    m.err = fmt.Errorf(err8141MalformedQComponent, m.p)
+    fhold;
+    fgoto fail;
+}
+
 pchar = (sss | '~' | '&' | hex);
 
 component = pchar (pchar | '/' | '?')*;
 
-disallowed = '?' [+=];
+r_start = ('?+') %mark_r_start;
 
-r_component = '?+' (component - disallowed) >mark %set_r_component;
+r_component = r_start <: (r_start | component)+ $err(err_malformed_r_component) >mark %set_r_component;
 
-q_component ='?=' (component - disallowed) >mark %set_q_component;
+q_start = ('?=') %mark_q_start;
+
+q_component = q_start <: (q_start | component)+ $err(err_malformed_q_component) >mark %set_q_component;
 
 rq_components = (r_component :>> q_component? | q_component);
+
+disallowed = ('?' [+=]); # TODO: ?
 
 fragment = (pchar | '/' | '?')*;
 
