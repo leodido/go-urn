@@ -18,6 +18,10 @@ var (
     errSCIMName            = "expecting one or more alnum char in the SCIM name part [col %d]"
     errSCIMOther           = "expecting a well-formed other SCIM part [col %d]"
     errSCIMOtherIncomplete = "expecting a not empty SCIM other part after colon [col %d]"
+
+    err8141InformalID = "informal URN namespace must be in the form urn-[1-9][0-9] [col %d]"
+    err8141SpecificString = "expecting the specific string to contain alnum, hex, or others ([~&()+,-.:=@;$_!*'] or '/' not in first position) chars [col %d]"
+    err8141Identifier = "expecting the indentifier to be a string with (length 2 to 32 chars) containing alnum (or dashes) not starting or ending with a dash [col %d]"
 )
 
 %%{
@@ -107,6 +111,24 @@ action err_parse {
 action base_type {
     output.kind = RFC2141;
 }
+
+pre = ([uU] @err(err_pre) [rR] @err(err_pre) [nN] @err(err_pre)) >mark >throw_pre_urn_err %set_pre;
+
+nid = (alnum >mark (alnum | '-'){0,31}) $err(err_nid) %set_nid;
+
+hex = '%' (digit | lower | upper >tolower){2} $err(err_hex);
+
+sss = (alnum | [()+,\-.:=@;$_!*']);
+
+nss = (sss | hex)+ $err(err_nss);
+
+nid_not_urn = (nid - pre %err(err_urn));
+
+urn := (nid_not_urn ':' nss >mark %set_nss) $err(err_parse) %eof(base_type);
+
+urn_only := pre ':' $err(err_pre) @{ fgoto urn; };
+
+### SCIM BEG
 
 action err_scim_nid {
     // In case we are in fallback mode we are now gonna jump to normal RFC2141 URN parsing
@@ -200,24 +222,6 @@ action set_scim_other {
     output.scim.Other = string(m.data[output.scim.pos:m.p])
 }
 
-pre = ([uU] @err(err_pre) [rR] @err(err_pre) [nN] @err(err_pre)) >mark >throw_pre_urn_err %set_pre;
-
-nid = (alnum >mark (alnum | '-'){0,31}) $err(err_nid) %set_nid;
-
-hex = '%' (digit | lower | upper >tolower){2} $err(err_hex);
-
-sss = (alnum | [()+,\-.:=@;$_!*']);
-
-nss = (sss | hex)+ $err(err_nss);
-
-nid_not_urn = (nid - pre %err(err_urn));
-
-urn := (nid_not_urn ':' nss >mark %set_nss) $err(err_parse) %eof(base_type);
-
-urn_only := pre ':' $err(err_pre) @{ fgoto urn; };
-
-### SCIM BEG
-
 scim_nid = 'ietf:params:scim' >mark %set_nid %create_scim $err(err_scim_nid);
 
 scim_other = ':' (sss | hex)+ >mark_scim_other %set_scim_other $err(err_scim_other);
@@ -235,13 +239,13 @@ scim_only := pre ':' $err(err_pre) @{ fgoto scim; };
 ### 8141 BEG
 
 action err_nss_8141 {
-    fmt.Println("err_nss_8141")
+    m.err = fmt.Errorf(err8141SpecificString, m.p)
     fhold;
     fgoto fail;
 }
 
 action err_nid_8141 {
-    fmt.Println("err_nid_8141")
+    m.err = fmt.Errorf(err8141Identifier, m.p)
     fhold;
     fgoto fail;
 }
@@ -251,18 +255,21 @@ action rfc8141_type {
 }
 
 action set_r_component {
-    fmt.Println("set_r_component", m.pb, m.p)
     output.rComponent = string(m.text())
 }
 
 action set_q_component {
-    fmt.Println("set_q_component", m.pb, m.p)
     output.qComponent = string(m.text())
 }
 
 action set_f_component {
-    fmt.Println("set_f_component", m.pb, m.p)
     output.fComponent = string(m.text())
+}
+
+action informal_nid_match {
+    fhold;
+    m.err = fmt.Errorf(err8141InformalID, m.p);
+    fgoto fail;
 }
 
 pchar = (sss | '~' | '&' | hex);
@@ -285,7 +292,11 @@ nss_rfc8141 = (pchar >mark (pchar | '/')*) $err(err_nss_8141) %set_nss;
 
 nid_rfc8141 = (alnum >mark (alnum | '-'){0,30} alnum) $err(err_nid_8141) %set_nid;
 
-rfc8141 := nid_rfc8141 ':' nss_rfc8141 rq_components? f_component? %eof(rfc8141_type);
+informal_id = pre ('-' [a-zA-z0] %to(informal_nid_match));
+
+nid_rfc8141_not_urn = (nid_rfc8141 - informal_id?);
+
+rfc8141 := nid_rfc8141_not_urn ':' nss_rfc8141 rq_components? f_component? %eof(rfc8141_type);
 
 rfc8141_only := pre ':' $err(err_pre) @{ fgoto rfc8141; };
 
