@@ -38,11 +38,13 @@ func TestJSONMarshaling(t *testing.T) {
 		}
 		assert.Equal(t, expected.String(), actual.String())
 	})
+
 	t.Run("invalid URN", func(t *testing.T) {
 		var actual URN
 		err := json.Unmarshal([]byte(`"not a URN"`), &actual)
 		assert.EqualError(t, err, "invalid URN: not a URN")
 	})
+
 	t.Run("empty", func(t *testing.T) {
 		var actual URN
 		err := actual.UnmarshalJSON(nil)
