@@ -15,8 +15,10 @@ func TestDefaultParsingMode(t *testing.T) {
 }
 
 func exec(t *testing.T, testCases []testCase, mode ParsingMode) {
+	t.Helper()
+	m := NewMachine(WithParsingMode(mode))
 	for ii, tt := range testCases {
-		urn, err := NewMachine(WithParsingMode(mode)).Parse([]byte(tt.in))
+		urn, err := m.Parse([]byte(tt.in))
 		ok := err == nil
 
 		if ok {
@@ -26,15 +28,27 @@ func exec(t *testing.T, testCases []testCase, mode ParsingMode) {
 			assert.Equal(t, tt.obj.SS, urn.SS, herror(ii, tt))
 			assert.Equal(t, tt.str, urn.String(), herror(ii, tt))
 			assert.Equal(t, tt.norm, urn.Normalize().String(), herror(ii, tt))
-			if mode == All || mode == RFC7643Only {
+			if mode == RFC8141Only {
+				assert.Equal(t, tt.obj.rComponent, urn.rComponent, herror(ii, tt))
+				assert.Equal(t, tt.obj.rComponent, urn.rComponent, herror(ii, tt))
+				assert.Equal(t, tt.obj.rComponent, urn.rComponent, herror(ii, tt))
+				assert.Equal(t, urn.RFC(), RFC8141, herror(ii, tt))
+			}
+			if mode == RFC7643Only {
 				assert.Equal(t, tt.isSCIM, urn.IsSCIM(), herror(ii, tt))
 			}
 		} else {
 			assert.False(t, tt.ok, herror(ii, tt))
 			assert.Empty(t, urn, herror(ii, tt))
 			assert.Equal(t, tt.estr, err.Error(), herror(ii, tt))
+			assert.Equal(t, tt.estr, m.Error().Error(), herror(ii, tt))
 		}
 	}
+}
+
+func TestParseDefaultMode(t *testing.T) {
+	require.Equal(t, RFC2141Only, DefaultParsingMode)
+	exec(t, urn2141OnlyTestCases, DefaultParsingMode)
 }
 
 func TestParse2141Only(t *testing.T) {
@@ -49,6 +63,6 @@ func TestSCIMOnly(t *testing.T) {
 	exec(t, scimOnlyTestCases, RFC7643Only)
 }
 
-func TestFallbackMode(t *testing.T) {
-	exec(t, fallbackTestCases, All)
+func TestParse8141Only(t *testing.T) {
+	exec(t, rfc8141TestCases, RFC8141Only)
 }
