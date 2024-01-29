@@ -103,12 +103,12 @@ func (u *URN) UnmarshalJSON(bytes []byte) error {
 	if err := json.Unmarshal(bytes, &str); err != nil {
 		return err
 	}
-	// FIXME: how to unmarshal as RFC8141? how to unmarsh as SCIM?
 	if value, ok := Parse([]byte(str)); !ok {
 		return fmt.Errorf(errInvalidURN, str)
 	} else {
 		*u = *value
 	}
+
 	return nil
 }
 
@@ -126,4 +126,16 @@ func (u *URN) SCIM() *SCIM {
 
 func (u *URN) RFC() Kind {
 	return u.kind
+}
+
+func (u *URN) FComponent() string {
+	return u.fComponent
+}
+
+func (u *URN) QComponent() string {
+	return u.qComponent
+}
+
+func (u *URN) RComponent() string {
+	return u.rComponent
 }
