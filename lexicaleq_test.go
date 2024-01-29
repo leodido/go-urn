@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type equivalenceTestCase struct {
@@ -129,4 +130,11 @@ func TestLexicalEquivalence(t *testing.T) {
 	for ii, tt := range append(equivalenceTests, equivalenceTests8141...) {
 		lexicalEqual(t, ii, tt, WithParsingMode(RFC8141Only))
 	}
+}
+
+func TestEqualNil(t *testing.T) {
+	u, ok := Parse([]byte("urn:hello:world"))
+	require.NotNil(t, u)
+	require.True(t, ok)
+	require.False(t, u.Equal(nil))
 }
