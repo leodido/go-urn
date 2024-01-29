@@ -18,14 +18,13 @@ var (
     errSCIMName            = "expecting one or more alnum char in the SCIM name part [col %d]"
     errSCIMOther           = "expecting a well-formed other SCIM part [col %d]"
     errSCIMOtherIncomplete = "expecting a not empty SCIM other part after colon [col %d]"
-
-    err8141InformalID = "informal URN namespace must be in the form urn-[1-9][0-9] [col %d]"
-    err8141SpecificString = "expecting the specific string to contain alnum, hex, or others ([~&()+,-.:=@;$_!*'] or '/' not in first position) chars [col %d]"
-    err8141Identifier = "expecting the indentifier to be a string with (length 2 to 32 chars) containing alnum (or dashes) not starting or ending with a dash [col %d]"
+    err8141InformalID      = "informal URN namespace must be in the form urn-[1-9][0-9] [col %d]"
+    err8141SpecificString  = "expecting the specific string to contain alnum, hex, or others ([~&()+,-.:=@;$_!*'] or [/?] not in first position) chars [col %d]"
+    err8141Identifier      = "expecting the indentifier to be a string with (length 2 to 32 chars) containing alnum (or dashes) not starting or ending with a dash [col %d]"
     err8141RComponentStart = "expecting only one r-component (starting with the ?+ sequence) [col %d]"
     err8141QComponentStart = "expecting only one q-component (starting with the ?= sequence) [col %d]"
-    err8141MalformedRComponent = "expecting a non-empty r-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'/?]) [col %d]"
-    err8141MalformedQComponent = "expecting a non-empty q-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'/?]) [col %d]"
+    err8141MalformedRComp  = "expecting a non-empty r-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'] or [/?] but not at its beginning) [col %d]"
+    err8141MalformedQComp  = "expecting a non-empty q-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'] or [/?] but not at its beginning) [col %d]"
 )
 
 %%{
@@ -295,13 +294,13 @@ action mark_q_start {
 }
 
 action err_malformed_r_component {
-    m.err = fmt.Errorf(err8141MalformedRComponent, m.p)
+    m.err = fmt.Errorf(err8141MalformedRComp, m.p)
     fhold;
     fgoto fail;
 }
 
 action err_malformed_q_component {
-    m.err = fmt.Errorf(err8141MalformedQComponent, m.p)
+    m.err = fmt.Errorf(err8141MalformedQComp, m.p)
     fhold;
     fgoto fail;
 }
@@ -320,11 +319,9 @@ q_component = q_start <: (q_start | component)+ $err(err_malformed_q_component) 
 
 rq_components = (r_component :>> q_component? | q_component);
 
-disallowed = ('?' [+=]); # TODO: ?
-
 fragment = (pchar | '/' | '?')*;
 
-f_component = '#' (fragment - disallowed) >mark %set_f_component;
+f_component = '#' fragment >mark %set_f_component;
 
 nss_rfc8141 = (pchar >mark (pchar | '/')*) $err(err_nss_8141) %set_nss;
 
