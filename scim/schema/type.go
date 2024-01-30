@@ -6,7 +6,6 @@ const (
 	Unsupported Type = iota
 	Schemas
 	API
-	Param
 )
 
 func (t Type) String() string {
@@ -15,8 +14,6 @@ func (t Type) String() string {
 		return "schemas"
 	case API:
 		return "api"
-	case Param:
-		return "param"
 	}
 
 	return ""
@@ -28,8 +25,6 @@ func TypeFromString(input string) Type {
 		return Schemas
 	case "api":
 		return API
-	case "param":
-		return Param
 	}
 
 	return Unsupported
