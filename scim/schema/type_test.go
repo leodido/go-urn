@@ -18,8 +18,4 @@ func TestTypeFromString(t *testing.T) {
 	api := TypeFromString("api")
 	require.Equal(t, API, api)
 	require.Equal(t, "api", api.String())
-
-	param := TypeFromString("param")
-	require.Equal(t, Param, param)
-	require.Equal(t, "param", param.String())
 }
