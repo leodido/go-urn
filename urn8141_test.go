@@ -43,6 +43,13 @@ func TestURN8141JSONMarshaling(t *testing.T) {
 		assert.EqualError(t, err, "invalid URN per RFC 8141: not a URN")
 	})
 
+	t.Run("invalid terminal state", func(t *testing.T) {
+		var actual URN8141
+		err := json.Unmarshal([]byte(`"urn:example:nss?"`), &actual)
+		assert.EqualError(t, err, "invalid URN per RFC 8141: urn:example:nss?")
+		assert.Nil(t, actual.URN)
+	})
+
 	t.Run("empty", func(t *testing.T) {
 		var actual URN8141
 		err := actual.UnmarshalJSON(nil)
