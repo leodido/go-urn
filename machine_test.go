@@ -66,3 +66,30 @@ func TestSCIMOnly(t *testing.T) {
 func TestParse8141Only(t *testing.T) {
 	exec(t, rfc8141TestCases, RFC8141Only)
 }
+
+func TestParse8141OnlyRejectsInvalidTerminalStates(t *testing.T) {
+	tests := []string{
+		"urn:example:nss?",
+		"urn:example:nss##",
+		"urn:example:nss?#",
+	}
+
+	for _, input := range tests {
+		t.Run(input, func(t *testing.T) {
+			m := NewMachine(WithParsingMode(RFC8141Only))
+			got, err := m.Parse([]byte(input))
+
+			assert.Nil(t, got)
+			if assert.Error(t, err) {
+				assert.Equal(t, err, m.Error())
+			}
+		})
+	}
+}
+
+func TestParse8141OnlyDoesNotReportNilResultAsSuccess(t *testing.T) {
+	got, ok := Parse([]byte("urn:example:nss?"), WithParsingMode(RFC8141Only))
+
+	assert.Nil(t, got)
+	assert.False(t, ok)
+}

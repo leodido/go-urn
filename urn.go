@@ -85,7 +85,7 @@ func (u *URN) String() string {
 // Parse is responsible for creating a URN instance from a byte array matching the correct URN syntax (RFC 2141).
 func Parse(u []byte, options ...Option) (*URN, bool) {
 	urn, err := NewMachine(options...).Parse(u)
-	if err != nil {
+	if err != nil || urn == nil {
 		return nil, false
 	}
 

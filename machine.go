@@ -24,6 +24,7 @@ var (
 	err8141QComponentStart = "expecting only one q-component (starting with the ?= sequence) [col %d]"
 	err8141MalformedRComp  = "expecting a non-empty r-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'] or [/?] but not at its beginning) [col %d]"
 	err8141MalformedQComp  = "expecting a non-empty q-component containing alnum, hex, or others ([~&()+,-.:=@;$_!*'] or [/?] but not at its beginning) [col %d]"
+	errInvalidSyntax       = "invalid URN syntax [col %d]"
 )
 var _toStateActions []byte = []byte{
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -5026,6 +5027,9 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 	}
 
 	if m.cs < firstFinal || m.cs == enFail {
+		if m.err == nil {
+			m.err = fmt.Errorf(errInvalidSyntax, m.p)
+		}
 		return nil, m.err
 	}
 
