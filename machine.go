@@ -4358,7 +4358,7 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 
 		if m.parsingMode != RFC8141Only {
 			// Throw an error when:
-			// - we are entering here matching the the prefix in the namespace identifier part
+			// - we are entering here matching the prefix in the namespace identifier part
 			// - looking ahead (3 chars) we find a colon
 			if pos := m.p + 3; pos < m.pe && m.data[pos] == 58 && output.prefix != "" {
 				m.err = fmt.Errorf(errNoUrnWithinID, pos)
