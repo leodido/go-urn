@@ -62,6 +62,9 @@ func (u *URN) Equal(x *URN) bool {
 //
 // Default URN prefix is "urn".
 func (u *URN) String() string {
+	if u == nil {
+		return ""
+	}
 	var res string
 	if u.ID != "" && u.SS != "" {
 		if u.prefix == "" {
