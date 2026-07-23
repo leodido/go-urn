@@ -51,3 +51,14 @@ func TestJSONMarshaling(t *testing.T) {
 		assert.EqualError(t, err, "unexpected end of JSON input")
 	})
 }
+
+func TestUnmarshalJSONNull(t *testing.T) {
+	// null must succeed and clear prior state (encoding/json null semantics).
+	u := URN{ID: "oid", SS: "1.2.3"}
+	if err := json.Unmarshal([]byte("null"), &u); err != nil {
+		t.Fatal(err)
+	}
+	if u.ID != "" || u.SS != "" || u.String() != "" {
+		t.Fatalf("expected zero URN after null, got id=%q ss=%q str=%q", u.ID, u.SS, u.String())
+	}
+}

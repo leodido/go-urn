@@ -99,6 +99,10 @@ func (u URN) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals a URN from JSON string form (e.g. `"urn:oid:1.2.3.4"`).
 func (u *URN) UnmarshalJSON(bytes []byte) error {
+	if string(bytes) == "null" {
+		*u = URN{}
+		return nil
+	}
 	var str string
 	if err := json.Unmarshal(bytes, &str); err != nil {
 		return err
