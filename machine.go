@@ -13,7 +13,7 @@ var (
 	errIdentifier          = "expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col %d]"
 	errSpecificString      = "expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col %d]"
 	errNoUrnWithinID       = "expecting the identifier to not contain the \"urn\" reserved string [col %d]"
-	errHex                 = "expecting the percent encoded chars to be well-formed (%%alnum{2}) [col %d]"
+	errHex                 = "expecting the percent encoded chars to be well-formed (%%hex{2}) [col %d]"
 	errSCIMNamespace       = "expecing the SCIM namespace identifier (ietf:params:scim) [col %d]"
 	errSCIMType            = "expecting a correct SCIM type (schemas, api, param) [col %d]"
 	errSCIMName            = "expecting one or more alnum char in the SCIM name part [col %d]"
@@ -902,8 +902,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr45
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr45
 				}
 			default:
@@ -916,8 +916,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr47
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr47
 				}
 			default:
@@ -1258,8 +1258,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr87
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr87
 				}
 			default:
@@ -1272,8 +1272,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr89
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr89
 				}
 			default:
@@ -2058,8 +2058,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr173
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr173
 				}
 			default:
@@ -2072,8 +2072,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr175
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr175
 				}
 			default:
@@ -2112,8 +2112,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr178
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr178
 				}
 			default:
@@ -2126,8 +2126,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr180
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr180
 				}
 			default:
@@ -2241,8 +2241,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr190
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr190
 				}
 			default:
@@ -2255,8 +2255,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr192
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr192
 				}
 			default:
@@ -2425,8 +2425,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr195
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr195
 				}
 			default:
@@ -2439,8 +2439,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr197
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr197
 				}
 			default:
@@ -2545,8 +2545,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr200
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr200
 				}
 			default:
@@ -2559,8 +2559,8 @@ func (m *machine) Parse(input []byte) (*URN, error) {
 				if 48 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 57 {
 					goto tr197
 				}
-			case (m.data)[(m.p)] > 90:
-				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 122 {
+			case (m.data)[(m.p)] > 70:
+				if 97 <= (m.data)[(m.p)] && (m.data)[(m.p)] <= 102 {
 					goto tr197
 				}
 			default:
