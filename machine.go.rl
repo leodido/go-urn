@@ -11,7 +11,7 @@ var (
     errIdentifier          = "expecting the identifier to be string (1..31 alnum chars, also containing dashes but not at its beginning) [col %d]"
     errSpecificString      = "expecting the specific string to be a string containing alnum, hex, or others ([()+,-.:=@;$_!*']) chars [col %d]"
     errNoUrnWithinID       = "expecting the identifier to not contain the \"urn\" reserved string [col %d]"
-    errHex                 = "expecting the percent encoded chars to be well-formed (%%alnum{2}) [col %d]"
+    errHex                 = "expecting the percent encoded chars to be well-formed (%%hex{2}) [col %d]"
     errSCIMNamespace       = "expecing the SCIM namespace identifier (ietf:params:scim) [col %d]"
     errSCIMType            = "expecting a correct SCIM type (schemas, api, param) [col %d]"
     errSCIMName            = "expecting one or more alnum char in the SCIM name part [col %d]"
@@ -116,7 +116,7 @@ pre = ([uU] @err(err_pre) [rR] @err(err_pre) [nN] @err(err_pre)) >mark >throw_pr
 
 nid = (alnum >mark (alnum | '-'){0,31}) $err(err_nid) %set_nid;
 
-hex = '%' (digit | lower | upper >tolower){2} $err(err_hex);
+hex = '%' (digit | [a-f] | [A-F] >tolower){2} $err(err_hex);
 
 sss = (alnum | [()+,\-.:=@;$_!*']);
 
